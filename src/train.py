@@ -1,4 +1,7 @@
+import os
+
 from dataset import OverlapTileDataset
+from utils import save_batch_with_labels_as_subplots
 
 import segmentation_models_pytorch as smp
 import torch
@@ -11,10 +14,19 @@ from pathlib import Path
 
 
 
-def train(dataset_dir = "/data/maestria/datasets/Pinus_Taeda/PinusTaedaV1", tile_size=512, overlap=128, batch_size=2,
-          lr=0.001, number_of_epochs=10, tiles = True, logs_dir="runs/unet_experiment", step_size=5, gamma=0.1):
-    dataset = OverlapTileDataset(Path(dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
+          val_dataset_dir = "/data/maestria/resultados/deep_cstrd/pinus_v1/val",
+          tile_size=512, overlap=128, batch_size=4,
+          lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5):
+
+    if Path(logs_dir).exists():
+        os.system(f"rm -r {logs_dir}")
+
+    dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
+    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+
+    dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
+    dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=True)
 
     # Define the model
     model = smp.Unet(
@@ -38,8 +50,15 @@ def train(dataset_dir = "/data/maestria/datasets/Pinus_Taeda/PinusTaedaV1", tile
 
     for epoch in range(number_of_epochs):  # Number of epochs
         running_loss = 0.0  # Track total loss for the epoch
+        epoch_images_dir = Path(logs_dir) / f"epoch_{epoch}"  # Directory to save images for this epoch
+        if epoch_images_dir.exists():
+            os.system(f"rm -r {epoch_images_dir}")
+        if epoch % step_size == 0 and epoch>0:
+            epoch_images_dir.mkdir(parents=True, exist_ok=True)
+            epoch_batch_images_dir = epoch_images_dir / "train"
+            epoch_batch_images_dir.mkdir(parents=True, exist_ok=True)
 
-        for batch_idx, batch in enumerate(dataloader):
+        for batch_idx, batch in enumerate(dataloader_train):
             images, labels = batch
 
             # Preprocess images
@@ -65,13 +84,22 @@ def train(dataset_dir = "/data/maestria/datasets/Pinus_Taeda/PinusTaedaV1", tile
             running_loss += loss.item()
 
             # Log batch loss to TensorBoard
-            writer.add_scalar("Loss/Batch", loss.item(), epoch * len(dataloader) + batch_idx)
+            writer.add_scalar("Loss/Batch", loss.item(), epoch * len(dataloader_train) + batch_idx)
+            # Example after getting predictions
+            if epoch % step_size == 0 and epoch>0 :
+                save_batch_with_labels_as_subplots(
+                    images,
+                    labels,
+                    predictions,
+                    output_path= epoch_batch_images_dir / f"{batch_idx}.png",
+                    batch_size=batch_size
+                )
 
         # Step the scheduler
         scheduler.step()
 
         # Epoch summary
-        epoch_loss = running_loss / len(dataloader)
+        epoch_loss = running_loss / len(dataloader_train)
         print(f"Epoch {epoch + 1}/{number_of_epochs} finished. Avg Loss: {epoch_loss:.4f}")
         print(f"Learning Rate: {scheduler.get_last_lr()[0]:.6f}")
 
@@ -79,12 +107,73 @@ def train(dataset_dir = "/data/maestria/datasets/Pinus_Taeda/PinusTaedaV1", tile
         writer.add_scalar("Loss/Epoch", epoch_loss, epoch)
         writer.add_scalar("Learning Rate", scheduler.get_last_lr()[0], epoch)
 
+        # Validation loop
+        epoch_batch_images_dir = epoch_images_dir / "val"
+        if epoch % step_size == 0 and epoch>0 :
+            epoch_batch_images_dir.mkdir(parents=True, exist_ok=True)
+        model.eval()
+        with torch.no_grad():
+            running_loss = 0.0
+            for batch_idx, batch in enumerate(dataloader_val):
+                images, labels = batch
+
+                # Preprocess images
+                images = images.permute(0, 3, 1, 2).float() / 255.0
+                labels = labels.float().unsqueeze(1)
+
+                # Move data to GPU if available
+                images = images.to(device)
+                labels = labels.to(device)
+
+                # Forward pass
+                predictions = model(images)
+
+                # Compute loss
+                loss = criterion(predictions, labels)
+
+                # Accumulate loss
+                running_loss += loss.item()
+
+                # Log batch loss to TensorBoard
+                writer.add_scalar("Val Loss/Batch", loss.item(), epoch * len(dataloader_val) + batch_idx)
+
+                # Example after getting predictions
+                if epoch % step_size == 0 and epoch>0 :
+                    save_batch_with_labels_as_subplots(
+                        images,
+                        labels,
+                        predictions,
+                        output_path= epoch_batch_images_dir / f"val_{batch_idx}.png",
+                        batch_size=batch_size
+                    )
+
+
+            # Epoch summary
+            epoch_loss = running_loss / len(dataloader_val)
+            print(f"Validation Loss: {epoch_loss:.4f}")
+            writer.add_scalar("Val Loss/Epoch", epoch_loss, epoch)
+
+
+        model.train()
+
+
     # Close the writer after training
     writer.close()
 
     return
 
 if __name__ == "__main__":
-    logs_dir = "runs/unet_experiment"
-    train(logs_dir)
+    import argparse
+    parser = argparse.ArgumentParser(description='Train a U-Net model for image segmentation')
+    parser.add_argument('--train_dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/train",
+                        help='Path to the dataset directory')
+    parser.add_argument("--val_dataset_dir", type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/val",
+                        help='Path to the dataset directory')
+    parser.add_argument('--logs_dir', type=str, default="runs/unet_experiment")
+    #load rest of parameter from config file
+    parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
+    args = parser.parse_args()
+
+
+    train(train_dataset_dir= args.train_dataset_dir, logs_dir=args.logs_dir, val_dataset_dir=args.val_dataset_dir)
 

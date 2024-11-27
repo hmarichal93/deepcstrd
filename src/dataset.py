@@ -57,15 +57,16 @@ class OverlapTileDataset(Dataset):
 
         l_images, l_labels = [], []
         if tiles:
+            counter = 0
             for image, mask in zip(images, masks):
                 tiles, labels = create_tiles_with_labels(image, mask, tile_size, overlap)
                 l_images.extend(tiles)
                 l_labels.extend(labels)
                 if debug:
-                    counter = 0
+
                     for t, l in zip(tiles, labels):
-                        write_image(self.tiles_images_dir / f"{len(l_images) + counter}.png", t)
-                        write_image(self.tiles_masks_dir / f"{len(l_images) + counter}.png", l)
+                        write_image(self.tiles_images_dir / f"{counter}.png", t)
+                        write_image(self.tiles_masks_dir / f"{counter}.png", (l*255).astype(np.uint))
                         counter += 1
         else:
             l_images = images
@@ -95,6 +96,7 @@ class OverlapTileDataset(Dataset):
             mask = np.where(mask > 0, 1, 0)
             l_mask.append(mask)
             l_images.append(image)
+            break
 
         return l_images, l_mask
 
