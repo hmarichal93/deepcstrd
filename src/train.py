@@ -2,6 +2,7 @@ import os
 
 from dataset import OverlapTileDataset
 from utils import save_batch_with_labels_as_subplots
+from losses import DiceLoss, Loss
 
 import segmentation_models_pytorch as smp
 import torch
@@ -17,7 +18,8 @@ from pathlib import Path
 def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
           val_dataset_dir = "/data/maestria/resultados/deep_cstrd/pinus_v1/val",
           tile_size=512, overlap=128, batch_size=4,
-          lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5):
+          lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
+          loss = Loss.dice):
 
     if Path(logs_dir).exists():
         os.system(f"rm -r {logs_dir}")
@@ -26,7 +28,7 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
 
     dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
-    dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=True)
+    dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
 
     # Define the model
     model = smp.Unet(
@@ -35,7 +37,7 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
         in_channels=3,  # Number of input channels (e.g., 3 for RGB)
         classes=1  # Number of output classes (e.g., 1 for binary segmentation)
     )
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     # Define the learning rate scheduler
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
@@ -86,7 +88,7 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
             # Log batch loss to TensorBoard
             writer.add_scalar("Loss/Batch", loss.item(), epoch * len(dataloader_train) + batch_idx)
             # Example after getting predictions
-            if epoch % step_size == 0 and epoch>0 :
+            if epoch % step_size == 0 and epoch>0 and False:
                 save_batch_with_labels_as_subplots(
                     images,
                     labels,
