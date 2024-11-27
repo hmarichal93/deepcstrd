@@ -16,7 +16,7 @@ def unet_check(image):
     return True
 def create_tiles_with_labels(image, mask, tile_size, overlap):
 
-    stride = tile_size - overlap
+    stride = int(tile_size * (1 - overlap))
     image_tiles, mask_tiles = [], []
     for i in range(0, image.shape[0] - tile_size + 1, stride):
         for j in range(0, image.shape[1] - tile_size + 1, stride):
@@ -40,6 +40,9 @@ class OverlapTileDataset(Dataset):
         self.mask_dir = dataset_dir / "masks"
         if debug:
             self.tiles_dir = dataset_dir / "tiles"
+            if self.tiles_dir.exists():
+                import os
+                os.system(f"rm -r {self.tiles_dir}")
             self.tiles_images_dir = self.tiles_dir / "images"
             self.tiles_masks_dir = self.tiles_dir / "masks"
             self.tiles_dir.mkdir(parents=True, exist_ok=True)

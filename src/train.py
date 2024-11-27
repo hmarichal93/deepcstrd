@@ -17,7 +17,7 @@ from pathlib import Path
 
 def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
           val_dataset_dir = "/data/maestria/resultados/deep_cstrd/pinus_v1/val",
-          tile_size=512, overlap=128, batch_size=4,
+          tile_size=256, overlap=0.2, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
           loss = Loss.dice):
 
@@ -111,7 +111,7 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
 
         # Validation loop
         epoch_batch_images_dir = epoch_images_dir / "val"
-        if epoch % step_size == 0 and epoch>0 :
+        if epoch % step_size == 0 and epoch>0 or epoch == number_of_epochs-1:
             epoch_batch_images_dir.mkdir(parents=True, exist_ok=True)
         model.eval()
         with torch.no_grad():
@@ -140,7 +140,7 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
                 writer.add_scalar("Val Loss/Batch", loss.item(), epoch * len(dataloader_val) + batch_idx)
 
                 # Example after getting predictions
-                if epoch % step_size == 0 and epoch>0 :
+                if epoch % step_size == 0 and epoch>0 or epoch == number_of_epochs-1 :
                     save_batch_with_labels_as_subplots(
                         images,
                         labels,
