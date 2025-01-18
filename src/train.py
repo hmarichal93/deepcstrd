@@ -18,7 +18,7 @@ from pathlib import Path
 def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
           tile_size=512, overlap=0.1, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
-          loss = Loss.dice , augmentation = False, debug=False):
+          loss = Loss.dice , augmentation = False, debug=True):
 
     if Path(logs_dir).exists():
         os.system(f"rm -r {logs_dir}")
@@ -98,7 +98,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
             writer.add_scalar("Loss/Batch", loss.item(), epoch * len(dataloader_train) + batch_idx)
             # Example after getting predictions
             if epoch % step_size == 0 and epoch>0:
-                if debug:
+                if False:
                     save_batch_with_labels_as_subplots(
                         images,
                         labels,

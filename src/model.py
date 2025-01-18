@@ -34,8 +34,9 @@ class UNET:
         )
         model.load_state_dict(torch.load(weights_path))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        #device = "cpu"
+        device = "cpu"
         model = model.to(device)
+        self.device = device
         return model
 
     def forward(self, img, output_dir=None):
@@ -47,6 +48,9 @@ class UNET:
         with torch.no_grad():
             #split the image into tiles
             image = image.permute(0, 3, 1, 2).float() / 255.0  # Normalize to [0, 1]
+            # if self.device.type == "cuda":
+            #     # convert rotated image to tensor
+            #     image = image.to(self.device)
             pred = self.model(image)
             pred = torch.sigmoid(pred)  # Apply sigmoid to get probabilities
             pred = pred.squeeze().cpu().numpy()  # Convert to numpy array
@@ -162,6 +166,7 @@ def deep_learning_edge_detector(img,
         output_dir_angle = None
         rot_image = rotate_image(img, (cx, cy), angle=angle)
         pred = model.forward(rot_image, output_dir=output_dir_angle)
+
         pred = rotate_image(pred, (cx, cy), angle=-angle)
         pred_dict[angle] = pred
     # Combine the predictions
