@@ -1,6 +1,6 @@
 import os
 
-from dataset import OverlapTileDataset
+from dataset import OverlapTileDataset, split_dataset
 from utils import save_batch_with_labels_as_subplots
 from losses import DiceLoss, Loss
 
@@ -15,16 +15,25 @@ from pathlib import Path
 
 
 
-def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
-          val_dataset_dir = "/data/maestria/resultados/deep_cstrd/pinus_v1/val",
-          tile_size=256, overlap=0.2, batch_size=4,
+def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
+          tile_size=512, overlap=0.1, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
           loss = Loss.dice):
 
     if Path(logs_dir).exists():
         os.system(f"rm -r {logs_dir}")
 
-    dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
+    # Create the datasets for train, validation and test
+    train_dataset_dir = dataset_root / "train"
+    val_dataset_dir = dataset_root / "val"
+    test_dataset_dir = dataset_root / "test"
+    if not train_dataset_dir.exists() or not val_dataset_dir.exists() or not test_dataset_dir.exists():
+        split_dataset(dataset_root, val_size=0.2, test_size=0.2)
+
+
+    #
+    dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles,
+                                       augmentation=False)
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
 
     dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
@@ -88,14 +97,16 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
             # Log batch loss to TensorBoard
             writer.add_scalar("Loss/Batch", loss.item(), epoch * len(dataloader_train) + batch_idx)
             # Example after getting predictions
-            if epoch % step_size == 0 and epoch>0 and False:
-                save_batch_with_labels_as_subplots(
-                    images,
-                    labels,
-                    predictions,
-                    output_path= epoch_batch_images_dir / f"{batch_idx}.png",
-                    batch_size=batch_size
-                )
+            if epoch % step_size == 0 and epoch>0:
+                # save_batch_with_labels_as_subplots(
+                #     images,
+                #     labels,
+                #     predictions,
+                #     output_path= epoch_batch_images_dir / f"{batch_idx}.png",
+                #     batch_size=batch_size
+                # )
+                #save model
+                torch.save(model.state_dict(), f"{epoch_images_dir}/latest_model.pth")
 
         # Step the scheduler
         scheduler.step()
@@ -159,6 +170,8 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
         model.train()
 
 
+    #save model
+    torch.save(model.state_dict(), f"{logs_dir}/model.pth")
     # Close the writer after training
     writer.close()
 
@@ -167,15 +180,13 @@ def train(train_dataset_dir = "/data/maestria/resultados/deep_cstrd/train",
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Train a U-Net model for image segmentation')
-    parser.add_argument('--train_dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/train",
+    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/",
                         help='Path to the dataset directory')
-    parser.add_argument("--val_dataset_dir", type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/val",
-                        help='Path to the dataset directory')
-    parser.add_argument('--logs_dir', type=str, default="runs/unet_experiment")
+
+    parser.add_argument('--logs_dir', type=str, default="runs/pinus_v1_40_train_12_val")
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     args = parser.parse_args()
 
-
-    train(train_dataset_dir= args.train_dataset_dir, logs_dir=args.logs_dir, val_dataset_dir=args.val_dataset_dir)
+    train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir)
 
