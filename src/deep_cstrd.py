@@ -3,11 +3,11 @@ import numpy as np
 
 from pathlib import Path
 
-from cross_section_tree_ring_detection.cross_section_tree_ring_detection import (preprocessing, canny_deverney_edge_detector,
-                                                                                 sampling_edges, connect_chains,
+from cross_section_tree_ring_detection.cross_section_tree_ring_detection import (sampling_edges, connect_chains,
                                                                                  postprocessing, chain_2_labelme_json,
                                                                                  save_config, saving_results)
 from filter_edges import filter_edges
+from preprocessing import preprocessing
 from urudendro.image import load_image, write_image
 
 from model import deep_learning_edge_detector
