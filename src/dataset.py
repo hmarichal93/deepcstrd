@@ -167,7 +167,7 @@ def generate_random_vector_multinomial_numpy(size, percentage):
 
 class OverlapTileDataset(Dataset):
     def __init__(self, dataset_dir: Path, tile_size: int, overlap: int, tiles: bool = True, augmentation: bool = False,
-                 augment_percentage=50,
+                 augment_percentage=20, shuffle_data=True,
                  debug: bool = True):
         self.images_dir = dataset_dir / "images/segmented"
         self.annotations_dir = dataset_dir / "annotations/labelme/images/"
@@ -185,7 +185,7 @@ class OverlapTileDataset(Dataset):
             self.tiles_masks_dir.mkdir(parents=True, exist_ok=True)
 
 
-        self.images, self.labels = self.load_data(tiles, tile_size, overlap, augmentation,  debug)
+        self.images, self.labels = self.load_data(tiles, tile_size, overlap, augmentation, shuffle_data,  debug)
 
     def augment_data(self, images, masks, percentage, horizontal_flip=True, vertical_flip=True, occlusions=True,
                      elastic_deformation=True, rotation=True):
@@ -270,7 +270,7 @@ class OverlapTileDataset(Dataset):
 
         return image
 
-    def load_data(self, tiles, tile_size, overlap, augmentation, debug):
+    def load_data(self, tiles, tile_size, overlap, augmentation, shuffle_data, debug):
         images, masks = self.load_images_and_masks(mask_dir=self.mask_dir)
 
 
@@ -286,14 +286,14 @@ class OverlapTileDataset(Dataset):
             l_labels = masks
 
         if augmentation:
-            images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, elastic_deformation=False)
-            l_images.extend(images_aug)
-            l_labels.extend(masks_aug)
-
-            images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, horizontal_flip=False,
-                                                      vertical_flip=False,  elastic_deformation=False)
-            l_images.extend(images_aug)
-            l_labels.extend(masks_aug)
+            # images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, elastic_deformation=False)
+            # l_images.extend(images_aug)
+            # l_labels.extend(masks_aug)
+            #
+            # images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, horizontal_flip=False,
+            #                                           vertical_flip=False,  elastic_deformation=False)
+            # l_images.extend(images_aug)
+            # l_labels.extend(masks_aug)
 
             images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, horizontal_flip=False,
                                                       vertical_flip=False,  elastic_deformation=True, occlusions=False,
@@ -307,8 +307,21 @@ class OverlapTileDataset(Dataset):
                 write_image(self.tiles_images_dir / f"{counter}.png", t)
                 write_image(self.tiles_masks_dir / f"{counter}.png", (l * 255).astype(np.uint))
                 counter += 1
-
+        #shuffle data
+        if shuffle_data:
+            l_images, l_labels = self.shuffle_data(l_images, l_labels)
         return l_images, l_labels
+
+    def shuffle_data(self, images, labels):
+        """
+        Shuffle the data.
+        """
+        #add seed
+        random.seed(42)
+        combined = list(zip(images, labels))
+        random.shuffle(combined)
+        images[:], labels[:] = zip(*combined)
+        return images, labels
     def load_images_and_masks(self, mask_dir=None):
         if mask_dir is not None:
             mask_dir.mkdir(parents=True, exist_ok=True)
