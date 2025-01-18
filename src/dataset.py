@@ -99,7 +99,10 @@ def create_tiles_with_labels(image, mask, tile_size, overlap):
                 aux[:image_tile.shape[0], :image_tile.shape[1]] = image_tile
                 image_tile = aux
 
-                aux = np.zeros((tile_size, tile_size, 3), dtype=np.uint8) + 255
+                if mask_tile.ndim == 2:
+                    aux = np.zeros((tile_size, tile_size), dtype=np.uint8) + 255
+                else:
+                    aux = np.zeros((tile_size, tile_size, 3), dtype=np.uint8) + 255
                 aux[:mask_tile.shape[0], :mask_tile.shape[1]] = mask_tile
                 mask_tile = aux
 
