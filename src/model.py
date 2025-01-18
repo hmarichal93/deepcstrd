@@ -34,7 +34,7 @@ class UNET:
         )
         model.load_state_dict(torch.load(weights_path))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        device = "cpu"
+        #device = "cpu"
         model = model.to(device)
         return model
 
