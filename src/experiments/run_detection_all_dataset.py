@@ -52,13 +52,14 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 
     metadata = pd.read_csv(metadata_filename)
     for idx in range(metadata.shape[0]):
-
         row = metadata.iloc[idx]
         name = row.Imagen
 
         img_filename = images_dir / f"{name}.png"
         if not img_filename.exists():
-            continue
+            img_filename = images_dir / f"{name}.jpg"
+            if not img_filename.exists():
+                continue
         img_res_dir = (results_path / name)
 
         img_res_dir.mkdir(exist_ok=True)
@@ -67,11 +68,11 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
         cx = row.cx
         #sigma = row.sigma
         sigma = 3
-        # if (img_res_dir / "labelme.json").exists():
-        #     continue
+        if (img_res_dir / "labelme.json").exists():
+            continue
 
         command = f"python deep_cstrd.py --input {img_filename} --sigma {sigma} --cy {cx} --cx {cy}  --root ./ --output_dir" \
-                  f" {img_res_dir}  --weights_path {weights_path}"
+                  f" {img_res_dir}  --weights_path {weights_path} --debug 1"
         #
         # command = f"python main.py --input {img_filename} --sigma {sigma} --cy {cx} --cx {cy}  --root ./ --output_dir" \
         #           f" {img_res_dir} --hsize 1500 --wsize 1500 --save_imgs 1"

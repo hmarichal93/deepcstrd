@@ -19,8 +19,9 @@ def get_center_pixel(annotation_path):
 
 
 
-def main_automatic(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/inbd/inference/inbd_results/models_/inbd_urudendro_labels"):
-    metadata_filename = Path(root_database) / 'dataset_ipol.csv'
+def main_automatic(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",
+                   results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/inbd/inference/inbd_results/models_/inbd_urudendro_labels"):
+    metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
     images_dir = Path(root_database) / "images/segmented"
     gt_dir = Path(root_database) / "annotations/labelme/images"
     results_path = Path(results_path)
@@ -40,20 +41,21 @@ def main_automatic(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v
         dt = results_path / f"{sample}/labelme.json"
 
 
-        dt = results_path / f"{sample}/{sample}.json"
-
+        #dt = results_path / f"{sample}/{sample}.json"
+        if not dt.exists():
+            continue
 
         gt = Path(f"{gt_dir}/{sample}.json")
         cx = row.cy
         cy = row.cx
         img_resized = results_path / f"{sample}/image.png"
-        dt = resize_annotations( str(img_resized), str(img_path),str(dt))
+        #dt = resize_annotations( str(img_resized), str(img_path),str(dt))
         output_sample_dir = results_path / sample
         output_sample_dir.mkdir(parents=True, exist_ok=True)
         P, R, F, RMSE, TP, FP, TN, FN = metric(str(dt), str(gt), str(img_path), str(output_sample_dir),0.6,  cy, cx)
 
         dt_data = load_json(str(dt))
-        exec_time = None#dt_data["exec_time(s)"]
+        exec_time = dt_data["exec_time(s)"]
 
         df = pd.concat([df, pd.DataFrame([{"Sample": sample, "Precision": P, "Recall": R, "F1": F,
                                            "RMSE": RMSE, "TP": TP, "FP": FP, "TN": TN, "FN": FN, "exec_time": exec_time}])],
@@ -74,5 +76,12 @@ def compute_statics(results_path):
     df_stats.to_csv(Path(results_path).parent / "results_stats.csv", index=False)
 
 if __name__ == "__main__":
-    res_path = main_automatic()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root_database", type=str, required=False, default="/data/maestria/resultados/deep_cstrd/pinus_v1/test")
+    parser.add_argument("--results_path", type=str, required=False, default="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd")
+    args = parser.parse_args()
+
+    res_path = main_automatic(args.root_database, args.results_path)
     compute_statics(res_path)
+
