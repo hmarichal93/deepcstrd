@@ -46,6 +46,5 @@ def filter_edges(m_ch_e, cy, cx, Gx, Gy, alpha, im_pre):
     border_curve = get_border_curve(im_pre, l_ch_f)
     # Line 9
     l_ch_f.append(border_curve)
-
     return l_ch_f
 

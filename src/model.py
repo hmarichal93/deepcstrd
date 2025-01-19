@@ -58,60 +58,38 @@ class UNET:
             pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
             write_image(f"{output_dir}/pred.png", (pred * 255).astype(np.uint8))
 
-        #pred = (pred > 0.5).astype(np.uint8)  # Binarize the mask
         return pred
 
-    def compute_connected_components(self, img):
-        binary_image = img > 0  # Thresholding for binary conversion
-        labels = measure.label(binary_image, connectivity=2)
-        m_ch_e = []
-        for region in measure.regionprops(labels):
-            points = region.coords[:,[1,0]]#.tolist()
-            #sort the points sequentially
 
-            m_ch_e.extend(points + [[-1,-1]])
-            m_ch_e.append(region.centroid)
-        return np.array(m_ch_e)
-
-    def compute_connected_components_by_contour(self, skeleton, output_dir, min_length_percentile=90):
+    def compute_connected_components_by_contour(self, skeleton, output_dir, debug=True):
 
         contours, hierarchy = cv2.findContours(skeleton.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        from urudendro.drawing import Drawing,Color
-        from shapely.geometry import LineString
-        img = np.zeros((skeleton.shape[0], skeleton.shape[1], 3), dtype=np.uint8)
-        color = Color()
+        #contours, hierarchy = cv2.findContours(skeleton.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if debug:
+            from urudendro.drawing import Drawing, Color
+            from shapely.geometry import LineString
+
+            img = np.zeros((skeleton.shape[0], skeleton.shape[1], 3), dtype=np.uint8)
+            color = Color()
+
         m_ch_e = []
-        lenghts_contours = [c.shape[0] for c in contours]
         #sort contours by size descinding
         contours = sorted(contours, key=lambda x: x.shape[0], reverse=True)
-        #get the 20 lower percentiles
-        min_length = np.percentile(lenghts_contours, min_length_percentile)
-        print(f"Min length: {min_length}. len(contours): {len(contours)}")
-
-        #contours = [c for c in contours if c.shape[0] > min_length]
-        print(f"Min length: {min_length}. len(contours): {len(contours)}")
-        contour_img = np.zeros_like(skeleton) - 1
         for idx, c in enumerate(contours):
             c_shape = c.shape[0]
             if c_shape < 2:
                 continue
-            maximun_in_contour = contour_img[c[:,0][:,1], c[:,0][:,0]].max()
-            if maximun_in_contour>-1:
-                continue
-            contour_img[c[:, 0][:, 1], c[:, 0][:, 0]] = idx
-            poly = LineString(c[:,0][:,::-1])
-            img = Drawing.curve(poly.coords, img, color.get_next_color())
+
             m_ch_e.extend(c[:,0].tolist() + [[-1,-1]])
 
+            if debug:
+                poly = LineString(c[:, 0][:, ::-1])
+                img = Drawing.curve(poly.coords, img, color.get_next_color())
 
-        write_image(f"{output_dir}/contours.png", img)
+        if debug:
+            write_image(f"{output_dir}/contours.png", img)
 
         return np.array(m_ch_e)
-
-    def gradient(self, img):
-        gx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=1)
-        gy = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=1)
-        return gx, gy
 
     def compute_normals(self, m_ch_e, h,w):
         n = len(m_ch_e)
@@ -154,7 +132,7 @@ def rotate_image(image, center, angle=90):
 
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
-                                output_dir=None, cy=None, cx=None):
+                                output_dir=None, cy=None, cx=None, debug=False):
     model = UNET(weights_path)
 
     angle_range = [0,90,180,270]
@@ -176,7 +154,7 @@ def deep_learning_edge_detector(img,
 
     #clip the values to 0
     # scale the values to 0-255
-    if output_dir:
+    if output_dir and debug:
         pred_scaled = (pred * 255).astype(np.uint8)
         #overlay the prediction on the image
         overlay = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
@@ -187,16 +165,18 @@ def deep_learning_edge_detector(img,
     #binarize the mask
     th = len(angle_range) / 3
     pred = (pred >= th).astype(np.uint8)  # Binarize the mask
+
+    #skeletonizing the mask
     skeleton = skeletonize(pred)
     skeleton = np.where(skeleton, 255, 0)  # Skeletonize the mask
 
     # write the image to disk
-    if output_dir:
+    if output_dir and debug:
         write_image(f"{output_dir}/skel.png", skeleton)
     #m_ch_e = model.compute_connected_components(skeleton)
-    m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir)
+    m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
-    if output_dir:
+    if output_dir and debug:
         #write_image("labels.png", labels)
         debug_image = img.copy()
 
