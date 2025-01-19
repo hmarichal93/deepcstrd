@@ -22,7 +22,7 @@ conda activate inbd_gpu
 # -------------------------------------------------------
 #disco local SSD local al nodo. /clusteruy/home/henry.marichal se accede via NFS (puede ser realmente lento)
 #el espacio local a utilizar se reserva dcon --tmp=XXXGb
-DATASET_DIR=$1
+ROOT_DIR=$1
 
 # -------------------------------------------------------
 #other variables
@@ -30,8 +30,8 @@ DATASET_DIR=$1
 #NODE_DATASET_DIR=$LOCAL_NODE_DIR/inbd/EH
 
 #NODE_MODEL_RESULTADOS_DIR=$NODE_RESULTADOS_DIR/model
-stdout_file="$HOME_RESULTADOS_DIR/stdout.txt"
-stderr_file="$HOME_RESULTADOS_DIR/stderr.txt"
+#stdout_file="$HOME_RESULTADOS_DIR/stdout.txt"
+#stderr_file="$HOME_RESULTADOS_DIR/stderr.txt"
 # Define a function to check the result of a command
 check_command_result() {
     # Run the command passed as an argument
@@ -53,7 +53,6 @@ check_command_result() {
 
 #check_command_result mkdir -p $NODE_DATASET_DIR
 #check_command_result mkdir -p $NODE_RESULTADOS_DIR
-check_command_result mkdir -p $HOME_RESULTADOS_DIR
 
 ####Move dataset to node local disk
 #check_command_result cp  -r $HOME_DATASET_DIR $NODE_DATASET_DIR
@@ -69,7 +68,7 @@ pip install -r src/requirements.txt
 
 # -------------------------------------------------------
 #copy results to HOME
-mkdir -p $HOME_RESULTADOS_DIR
+#mkdir -p $HOME_RESULTADOS_DIR
 #cp -r $NODE_RESULTADOS_DIR/* $HOME_RESULTADOS_DIR
 #cp -r $NODE_DATASET_DIR/* $HOME_RESULTADOS_DIR
 #delete temporal files
