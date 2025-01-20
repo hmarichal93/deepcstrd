@@ -57,7 +57,6 @@ nvidia-cusparse-cu12==12.3.1.170
 nvidia-nccl-cu12==2.21.5
 nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.4.127
-onnxruntime==1.20.1
 opencv-contrib-python-headless==4.8.1.78
 opencv-python==4.8.1.78
 packaging==24.2
