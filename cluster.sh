@@ -22,12 +22,13 @@ source /clusteruy/home/henry.marichal/miniconda3/etc/profile.d/conda.sh
 #disco local SSD local al nodo. /clusteruy/home/henry.marichal se accede via NFS (puede ser realmente lento)
 #el espacio local a utilizar se reserva dcon --tmp=XXXGb
 ROOT_DIR=$1
-
+DATASET_DIR=$2
+LOGS_DIR=$3
 #install conda environemtnt
 cd $ROOT_DIR
 #conda env create -f src/environment.yml
 conda activate deep_cstrd
-pip install -r src/requirements.txt
+#pip install -r src/requirements.txt
 
 # -------------------------------------------------------
 #other variables
@@ -65,7 +66,8 @@ check_command_result() {
 
 # -------------------------------------------------------
 # Run the program
-
+cd $ROOT_DIR
+python src/train.py --dataset_dir $DATASET_DIR  --logs_dir src/runs/$LOGS_DIR
 
 
 # -------------------------------------------------------
