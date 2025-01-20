@@ -424,10 +424,10 @@ def generate_dataset_folder(folder_name:Path, dataset_root:Path, samples_list:Li
     images_dir_dest.mkdir(parents=True, exist_ok=True)
     annotations_dir_dest.mkdir(parents=True, exist_ok=True)
     for sample in samples_list:
-        image_path = images_dir / f"{sample}.png"
+        image_path = next(images_dir.rglob(f"*{sample}*"))
         annotation_path = annotations_dir / f"{sample}.json"
-        image_dest = images_dir_dest / f"{sample}.png"
-        annotation_dest = annotations_dir_dest / f"{sample}.json"
+        image_dest = images_dir_dest / image_path.name
+        annotation_dest = annotations_dir_dest / annotation_path.name
 
         os.system(f"cp {image_path} {image_dest}")
         os.system(f"cp {annotation_path} {annotation_dest}")
