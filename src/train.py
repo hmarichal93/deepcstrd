@@ -98,14 +98,13 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
             writer.add_scalar("Loss/Batch", loss.item(), epoch * len(dataloader_train) + batch_idx)
             # Example after getting predictions
             if epoch % step_size == 0 and epoch>0:
-                if False:
-                    save_batch_with_labels_as_subplots(
-                        images,
-                        labels,
-                        predictions,
-                        output_path= epoch_batch_images_dir / f"{batch_idx}.png",
-                        batch_size=batch_size
-                    )
+                # save_batch_with_labels_as_subplots(
+                #     images,
+                #     labels,
+                #     predictions,
+                #     output_path= epoch_batch_images_dir / f"{batch_idx}.png",
+                #     batch_size=batch_size
+                # )
                 #save model
                 torch.save(model.state_dict(), f"{epoch_images_dir}/latest_model.pth")
 

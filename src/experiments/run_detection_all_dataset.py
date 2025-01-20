@@ -43,7 +43,7 @@ def generate_pdf(path):
     pdf.output(f"{path}/summary_ipol.pdf", 'F')
 
 def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
-         weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth"):
+         weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth", inbd=True):
 
     metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
     images_dir = Path(root_database) / "images/segmented"
@@ -61,11 +61,10 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
             if not img_filename.exists():
                 continue
         img_res_dir = (results_path / name)
-
         img_res_dir.mkdir(exist_ok=True)
 
-        cy = row.cy
-        cx = row.cx
+        cy = int(row.cy)
+        cx = int(row.cx)
         #sigma = row.sigma
         sigma = 3
         if (img_res_dir / "labelme.json").exists():
@@ -73,7 +72,10 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 
         command = f"python deep_cstrd.py --input {img_filename} --sigma {sigma} --cy {cx} --cx {cy}  --root ./ --output_dir" \
                   f" {img_res_dir}  --weights_path {weights_path} --debug 1"
-        #
+
+
+        command = f"python deep_cstrd.py --input {img_filename} --sigma {sigma} --cy {cy} --cx {cx}  --root ./ --output_dir" \
+                  f" {img_res_dir}  --weights_path {weights_path}"
         # command = f"python main.py --input {img_filename} --sigma {sigma} --cy {cx} --cx {cy}  --root ./ --output_dir" \
         #           f" {img_res_dir} --hsize 1500 --wsize 1500 --save_imgs 1"
 
