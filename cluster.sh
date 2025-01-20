@@ -17,12 +17,17 @@
 
 source /etc/profile.d/modules.sh
 source /clusteruy/home/henry.marichal/miniconda3/etc/profile.d/conda.sh
-conda activate inbd_gpu
 
 # -------------------------------------------------------
 #disco local SSD local al nodo. /clusteruy/home/henry.marichal se accede via NFS (puede ser realmente lento)
 #el espacio local a utilizar se reserva dcon --tmp=XXXGb
 ROOT_DIR=$1
+
+#install conda environemtnt
+cd $ROOT_DIR
+#conda env create -f src/environment.yml
+conda activate deep_cstrd
+pip install -r src/requirements.txt
 
 # -------------------------------------------------------
 #other variables
@@ -60,10 +65,7 @@ check_command_result() {
 
 # -------------------------------------------------------
 # Run the program
-cd $ROOT_DIR
-conda env create -f src/environment.yml
-conda activate deep_cstrd
-pip install -r src/requirements.txt
+
 
 
 # -------------------------------------------------------
