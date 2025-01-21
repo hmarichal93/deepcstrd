@@ -11,6 +11,7 @@ python src/train.py --train_dataset_dir /data/maestria/resultados/deep_cstrd/pin
 
 ###
  python src/train.py --dataset_dir ~/datasets/deep_cstrd/pinus_v2/  --logs_dir src/runs/pinus_v2
+  python src/train.py --dataset_dir ~/datasets/deep_cstrd/pinus_v2/  --logs_dir src/runs/pinus_v2_debug
 
 
 ### Gleditsia triacanthos v1

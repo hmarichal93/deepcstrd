@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=deep_cstrd
-#SBATCH --ntasks=8
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=30G
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=ALL
@@ -31,32 +32,22 @@ cd $ROOT_DIR
 conda activate deep_cstrd
 #pip install -r src/requirements.txt
 
+##
+NODE_SSD_DIR=/scratch/henry.marichal
+#copy dataset to local disk
+NODE_DATASET_DIR=$NODE_SSD_DIR/dataset
+NODE_LOGS_DIR=$NODE_SSD_DIR/logs
+#copy dataset to local disk
+rm -rf $NODE_DATASET_DIR
+rm -rf $NODE_LOGS_DIR
+mkdir -p $NODE_DATASET_DIR
+mkdir -p $NODE_LOGS_DIR
+
+cp -r $DATASET_DIR $NODE_DATASET_DIR
+
 # -------------------------------------------------------
-#other variables
-#NODE_RESULTADOS_DIR=$LOCAL_NODE_DIR/inbd/resultados
-#NODE_DATASET_DIR=$LOCAL_NODE_DIR/inbd/EH
-
-#NODE_MODEL_RESULTADOS_DIR=$NODE_RESULTADOS_DIR/model
-#stdout_file="$HOME_RESULTADOS_DIR/stdout.txt"
-#stderr_file="$HOME_RESULTADOS_DIR/stderr.txt"
-# Define a function to check the result of a command
-check_command_result() {
-    # Run the command passed as an argument
-    "$@"
-
-    # Check the exit status
-    if [ $? -eq 0 ]; then
-        echo "Command was successful."
-    else
-        echo "Command failed with an error."
-        exit 1
-    fi
-}
-
 ####Prepare directories
-#rm -rf $NODE_DATASET_DIR
-#rm -rf $NODE_RESULTADOS_DIR
-#rm -rf $HOME_RESULTADOS_DIR
+
 
 #check_command_result mkdir -p $NODE_DATASET_DIR
 #check_command_result mkdir -p $NODE_RESULTADOS_DIR
@@ -68,14 +59,7 @@ check_command_result() {
 # -------------------------------------------------------
 # Run the program
 cd $ROOT_DIR
-python src/train.py --dataset_dir $DATASET_DIR  --logs_dir src/runs/$LOGS_DIR --model_type $MODEL_TYPE
+python src/train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir src/runs/$LOGS_DIR --model_type $MODEL_TYPE
 
 
 # -------------------------------------------------------
-#copy results to HOME
-#mkdir -p $HOME_RESULTADOS_DIR
-#cp -r $NODE_RESULTADOS_DIR/* $HOME_RESULTADOS_DIR
-#cp -r $NODE_DATASET_DIR/* $HOME_RESULTADOS_DIR
-#delete temporal files
-#rm -rf $NODE_RESULTADOS_DIR
-#rm -rf $NODE_DATASET_DIR
