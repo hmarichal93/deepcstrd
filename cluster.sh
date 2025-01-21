@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=deep_cstrd
-#SBATCH --ntasks=16
-#SBATCH --mem=100G
+#SBATCH --ntasks=8
+#SBATCH --mem=30G
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --tmp=100G
