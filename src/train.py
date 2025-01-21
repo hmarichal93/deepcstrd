@@ -3,19 +3,18 @@ import os
 from dataset import OverlapTileDataset, split_dataset
 from utils import save_batch_with_labels_as_subplots
 from losses import DiceLoss, Loss
+from model import segmentation_model
 
 import segmentation_models_pytorch as smp
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.models.detection.mask_rcnn
 
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 
-class segmentation_model:
-    UNET = 1
-    UNET_PLUS_PLUS = 2
 
 def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug):
     if Path(logs_dir).exists():
@@ -78,6 +77,12 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
             in_channels=3,  # Number of input channels (e.g., 3 for RGB)
             classes=1  # Number of output classes (e.g., 1 for binary segmentation)
         )
+    elif model_type == segmentation_model.MASK_RCNN:
+        print("MASK RCNN")
+        model = torchvision.models.detection.mask_rcnn.MaskRCNN(backbone="resnet50", num_classes=1, pretrained=True)
+
+    else:
+        raise ValueError("Invalid model type")
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
