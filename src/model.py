@@ -23,12 +23,13 @@ class segmentation_model:
 class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
                  tile_size=512, overlap=0.1, output_dir=None, model_type=segmentation_model.UNET):
+        self.model_type = model_type
         self.model = self.load_model(weights_path)
         self.model.eval()
         self.tile_size = tile_size
         self.overlap = overlap
         self.output_dir = output_dir
-        self.model_type = model_type
+
 
     def load_model(self, weights_path):
         # Load your model here
