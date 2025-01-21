@@ -51,7 +51,9 @@ mkdir -p $NODE_DATASET_DIR
 mkdir -p $NODE_LOGS_DIR
 mkdir -p $LOCAL_LOGS_DIR
 
-cp -r $DATASET_DIR $NODE_DATASET_DIR
+cp -rv $DATASET_DIR $NODE_DATASET_DIR
+
+ls -l $NODE_DATASET_DIR
 
 
 # -------------------------------------------------------
