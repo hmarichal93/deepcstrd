@@ -18,10 +18,13 @@ class segmentation_model:
     UNET_PLUS_PLUS = 2
 
 def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug):
+    if Path(logs_dir).exists():
+        os.system(f"rm -r {logs_dir}")
+
+    Path(logs_dir).mkdir(parents=True, exist_ok=True)
+
     with open(f"{logs_dir}/config.txt", "w") as f:
-        if Path(logs_dir).exists():
-            os.system(f"rm -r {logs_dir}")
-        Path(logs_dir).mkdir(parents=True, exist_ok=True)
+
 
         f.write(f"dataset_root: {dataset_root}\n")
         f.write(f"tile_size: {tile_size}\n")
