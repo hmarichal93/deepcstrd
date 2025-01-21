@@ -37,11 +37,15 @@ NODE_SSD_DIR=/scratch/henry.marichal
 #copy dataset to local disk
 NODE_DATASET_DIR=$NODE_SSD_DIR/dataset
 NODE_LOGS_DIR=$NODE_SSD_DIR/logs
+LOCAL_LOGS_DIR="$ROOT_DIR/src/runs/$LOGS_DIR"
 #copy dataset to local disk
 rm -rf $NODE_DATASET_DIR
 rm -rf $NODE_LOGS_DIR
+rm -rf $LOCAL_LOGS_DIR
+
 mkdir -p $NODE_DATASET_DIR
 mkdir -p $NODE_LOGS_DIR
+mkdir -p $LOCAL_LOGS_DIR
 
 cp -r $DATASET_DIR $NODE_DATASET_DIR
 
@@ -59,7 +63,9 @@ cp -r $DATASET_DIR $NODE_DATASET_DIR
 # -------------------------------------------------------
 # Run the program
 cd $ROOT_DIR
-python src/train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir src/runs/$LOGS_DIR --model_type $MODEL_TYPE
+python src/train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --model_type $MODEL_TYPE
 
 
 # -------------------------------------------------------
+cp -r $NODE_LOGS_DIR $LOCAL_LOGS_DIR
+

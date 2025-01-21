@@ -41,7 +41,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
 def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
           tile_size=512, overlap=0.1, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
-          loss = Loss.dice , augmentation = False, model_type=segmentation_model.UNET,debug=True):
+          loss = Loss.dice , augmentation = False, model_type=segmentation_model.UNET,debug=False):
 
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug)
     # Create the datasets for train, validation and test
@@ -226,8 +226,9 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
     parser.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
-
+    parser.add_argument("--debug", type=bool, default=False, help="Debug mode")
     args = parser.parse_args()
 
-    train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation, model_type=args.model_type)
+    train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
+          model_type=args.model_type, debug=args.debug)
 
