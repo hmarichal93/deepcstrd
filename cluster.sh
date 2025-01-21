@@ -41,9 +41,9 @@ LOCAL_LOGS_DIR="$ROOT_DIR/src/runs/$LOGS_DIR"
 #copy dataset to local disk
 echo "Removing old dataset from local disk"
 
-rm -rf $NODE_DATASET_DIR
-rm -rf $NODE_LOGS_DIR
-rm -rf $LOCAL_LOGS_DIR
+rm -rfv $NODE_DATASET_DIR
+rm -rfv $NODE_LOGS_DIR
+rm -rfv $LOCAL_LOGS_DIR
 
 echo "Copying dataset to local disk"
 
