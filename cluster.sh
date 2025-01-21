@@ -11,8 +11,8 @@
 #SBATCH --gres=gpu:1 # se solicita una gpu cualquiera( va a tomar la primera que quede disponible indistintamente si es una p100 o una a100)
 
 
-#SBATCH --partition=normal
-#SBATCH --qos=gpu
+#SBATCH --partition=besteffort
+#SBATCH --qos=besteffort
 
 
 source /etc/profile.d/modules.sh
