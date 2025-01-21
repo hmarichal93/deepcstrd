@@ -40,7 +40,8 @@ def save_batch_with_labels_as_subplots(images, labels, predictions, output_path=
         axes[i, 0].axis("off")
 
         # Plot ground truth label
-        axes[i, 1].imshow(label_np, cmap="gray")  # Display label as grayscale
+        axes[i, 1].imshow(image_np)
+        axes[i, 1].imshow(label_np, cmap="jet", alpha=0.5)  # Display label as grayscale
         axes[i, 1].set_title(f"Label {i}")
         axes[i, 1].axis("off")
 
