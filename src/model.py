@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import torchvision
 from skimage.morphology import skeletonize
 import numpy as np
 import segmentation_models_pytorch as smp
@@ -13,25 +14,44 @@ from dataset import create_tiles_with_labels, from_tiles_to_image, overlay_image
 from urudendro.image import load_image, write_image
 from urudendro.drawing import Drawing, Color
 
+class segmentation_model:
+    UNET = 1
+    UNET_PLUS_PLUS = 2
+    MASK_RCNN = 3
 
 
-class UNET:
+class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
-                 tile_size=512, overlap=0.1, output_dir=None):
+                 tile_size=512, overlap=0.1, output_dir=None, model_type=segmentation_model.UNET):
         self.model = self.load_model(weights_path)
         self.model.eval()
         self.tile_size = tile_size
         self.overlap = overlap
         self.output_dir = output_dir
+        self.model_type = model_type
 
     def load_model(self, weights_path):
         # Load your model here
-        model = smp.Unet(
-            encoder_name="resnet34",
-            encoder_weights=None,
-            in_channels=3,
-            classes=1
-        )
+        if self.model_type == segmentation_model.UNET:
+            model = smp.Unet(
+                encoder_name="resnet34",
+                encoder_weights=None,
+                in_channels=3,
+                classes=1
+            )
+        elif self.model_type == segmentation_model.UNET_PLUS_PLUS:
+            model = smp.UnetPlusPlus(
+                encoder_name="resnet34",
+                encoder_weights=None,
+                in_channels=3,
+                classes=1
+            )
+        elif self.model_type == segmentation_model.MASK_RCNN:
+            model = torchvision.models.detection.mask_rcnn.MaskRCNN(backbone="resnet50", num_classes=1, pretrained=True)
+
+        else:
+            raise ValueError("Invalid model type")
+
         model.load_state_dict(torch.load(weights_path))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         device = "cpu"
@@ -192,7 +212,7 @@ def unrotate_and_crop(image, angle, cx, cy, original_shape, max_dist):
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
                                 output_dir=None, cy=None, cx=None, debug=False):
-    model = UNET(weights_path)
+    model = RingSegmentationModel(weights_path)
 
     angle_range = [0,90,180,270]
     #angle_range = [0]
