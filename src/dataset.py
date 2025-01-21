@@ -302,23 +302,35 @@ class OverlapTileDataset(Dataset):
             l_labels.extend(masks_aug)
 
         if debug:
+            debug_dir = self.tiles_dir / "debug"
+            debug_dir.mkdir(parents=True, exist_ok=True)
             counter = 0
             for t, l in zip(l_images, l_labels):
                 write_image(self.tiles_images_dir / f"{counter}.png", t)
                 write_image(self.tiles_masks_dir / f"{counter}.png", (l * 255).astype(np.uint))
+
+                #overlay the label (l) over the tile (t)
+                overlay = np.zeros_like(t)
+                overlay[:,:,0] = l*255
+                overlay = overlay_images(t, overlay, alpha=0.5, beta=0.5, gamma=0)
+                write_image(debug_dir / f"{counter}.png", overlay)
+
                 counter += 1
         return l_images, l_labels
 
 
-    def load_images_and_masks(self, mask_dir=None):
+    def load_images_and_masks(self, mask_dir=None, debug=True):
         if mask_dir is not None:
             mask_dir.mkdir(parents=True, exist_ok=True)
+        if debug:
+            debug_dir = mask_dir.parent / "debug"
+            debug_dir.mkdir(parents=True, exist_ok=True)
         annotations = list(self.annotations_dir.glob("*.json"))
         l_mask = []
         l_images = []
         for ann in annotations:
             try:
-                img_path = next(self.images_dir.rglob(f"{ann.stem}*"))
+                img_path = next(self.images_dir.rglob(f"{ann.stem}.*"))
             except StopIteration:
                 continue
             image = load_image(img_path)
@@ -342,6 +354,12 @@ class OverlapTileDataset(Dataset):
                 mask_path = mask_dir / f"{ann.stem}.png"
                 write_image(mask_path, mask)
 
+            if debug:
+                #overlay the mask over the image
+                overlay = np.zeros_like(image)
+                overlay[:,:,0] = mask
+                overlay = overlay_images(image, overlay, alpha=0.5, beta=0.5, gamma=0)
+                write_image(debug_dir / f"{ann.stem}.png", overlay)
             mask = np.where(mask > 0, 1, 0)
             l_mask.append(mask)
             l_images.append(image)
