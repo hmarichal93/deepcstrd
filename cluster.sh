@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=inbd
+#SBATCH --job-name=deep_cstrd
 #SBATCH --ntasks=16
 #SBATCH --mem=100G
 #SBATCH --time=24:00:00
