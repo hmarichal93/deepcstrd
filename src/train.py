@@ -13,16 +13,36 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 
+class segmentation_model:
+    UNET = 1
+    UNET_PLUS_PLUS = 2
 
+def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug):
+    with open(f"{logs_dir}/config.txt", "w") as f:
+        if Path(logs_dir).exists():
+            os.system(f"rm -r {logs_dir}")
+        Path(logs_dir).mkdir(parents=True, exist_ok=True)
 
+        f.write(f"dataset_root: {dataset_root}\n")
+        f.write(f"tile_size: {tile_size}\n")
+        f.write(f"overlap: {overlap}\n")
+        f.write(f"batch_size: {batch_size}\n")
+        f.write(f"lr: {lr}\n")
+        f.write(f"number_of_epochs: {number_of_epochs}\n")
+        f.write(f"tiles: {tiles}\n")
+        f.write(f"logs_dir: {logs_dir}\n")
+        f.write(f"step_size: {step_size}\n")
+        f.write(f"gamma: {gamma}\n")
+        f.write(f"loss: {loss}\n")
+        f.write(f"augmentation: {augmentation}\n")
+        f.write(f"model_type: {model_type}\n")
+        f.write(f"debug: {debug}\n")
 def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
           tile_size=512, overlap=0.1, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
-          loss = Loss.dice , augmentation = False, debug=True):
+          loss = Loss.dice , augmentation = False, model_type=segmentation_model.UNET,debug=True):
 
-    if Path(logs_dir).exists():
-        os.system(f"rm -r {logs_dir}")
-
+    save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug)
     # Create the datasets for train, validation and test
     train_dataset_dir = dataset_root / "train"
     val_dataset_dir = dataset_root / "val"
@@ -40,12 +60,23 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
 
     # Define the model
-    model = smp.Unet(
-        encoder_name="resnet34",  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
-        encoder_weights="imagenet",  # Use pretrained weights on ImageNet
-        in_channels=3,  # Number of input channels (e.g., 3 for RGB)
-        classes=1  # Number of output classes (e.g., 1 for binary segmentation)
-    )
+    if model_type == segmentation_model.UNET:
+        print("UNET")
+        model = smp.Unet(
+            encoder_name="resnet34",  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
+            encoder_weights="imagenet",  # Use pretrained weights on ImageNet
+            in_channels=3,  # Number of input channels (e.g., 3 for RGB)
+            classes=1  # Number of output classes (e.g., 1 for binary segmentation)
+        )
+    elif model_type == segmentation_model.UNET_PLUS_PLUS:
+        print("UNET++")
+        model = smp.UnetPlusPlus(
+            encoder_name="resnet34",  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
+            encoder_weights="imagenet",  # Use pretrained weights on ImageNet
+            in_channels=3,  # Number of input channels (e.g., 3 for RGB)
+            classes=1  # Number of output classes (e.g., 1 for binary segmentation)
+        )
+
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     # Define the learning rate scheduler
@@ -187,8 +218,9 @@ if __name__ == "__main__":
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
+    parser.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
 
     args = parser.parse_args()
 
-    train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation)
+    train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation, model_type=args.model_type)
 

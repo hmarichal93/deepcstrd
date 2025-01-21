@@ -24,6 +24,7 @@ source /clusteruy/home/henry.marichal/miniconda3/etc/profile.d/conda.sh
 ROOT_DIR=$1
 DATASET_DIR=$2
 LOGS_DIR=$3
+MODEL_TYPE=$4
 #install conda environemtnt
 cd $ROOT_DIR
 #conda env create -f src/environment.yml
