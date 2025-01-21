@@ -24,8 +24,6 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
 
     with open(f"{logs_dir}/config.txt", "w") as f:
-
-
         f.write(f"dataset_root: {dataset_root}\n")
         f.write(f"tile_size: {tile_size}\n")
         f.write(f"overlap: {overlap}\n")
@@ -40,6 +38,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"augmentation: {augmentation}\n")
         f.write(f"model_type: {model_type}\n")
         f.write(f"debug: {debug}\n")
+
 def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
           tile_size=512, overlap=0.1, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,

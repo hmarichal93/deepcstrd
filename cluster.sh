@@ -68,7 +68,7 @@ check_command_result() {
 # -------------------------------------------------------
 # Run the program
 cd $ROOT_DIR
-python src/train.py --dataset_dir $DATASET_DIR  --logs_dir src/runs/$LOGS_DIR
+python src/train.py --dataset_dir $DATASET_DIR  --logs_dir src/runs/$LOGS_DIR --model_type $MODEL_TYPE
 
 
 # -------------------------------------------------------
