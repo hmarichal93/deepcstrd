@@ -1,6 +1,6 @@
 import os
 
-from deep_cstrd.dataset import OverlapTileDataset, split_dataset
+from deep_cstrd.dataset import split_dataset, OverlapTileDataset
 from deep_cstrd.utils import save_batch_with_labels_as_subplots
 from deep_cstrd.losses import DiceLoss, Loss
 from deep_cstrd.model import segmentation_model

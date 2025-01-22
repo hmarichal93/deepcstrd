@@ -280,6 +280,8 @@ class OverlapTileDataset(Dataset):
                 tiles, labels = create_tiles_with_labels(image, mask, tile_size, overlap)
                 l_images.extend(tiles)
                 l_labels.extend(labels)
+                # write_image(self.tiles_images_dir / f"0.png", tiles[0])
+                # write_image(self.tiles_masks_dir / f"0.png", (labels[0] * 255).astype(np.uint8))
 
         else:
             l_images = images
@@ -320,7 +322,21 @@ class OverlapTileDataset(Dataset):
             counter += 1
         return l_images, l_labels
 
-
+    def crop_image(self, image, mask, mask_dir, mask_path):
+        y, x = np.where(mask > 0)
+        y_min, y_max = np.min(y), np.max(y)
+        offset = 10
+        y_min = np.maximum(0, y_min - offset)
+        y_max = np.minimum(image.shape[0]-1, y_max + offset)
+        x_min, x_max = np.min(x), np.max(x)
+        x_min = np.maximum(0, x_min - offset)
+        x_max = np.minimum(image.shape[1]-1, x_max + offset)
+        #crop image and mask with an offset of 10 pixels
+        image = image[y_min:y_max, x_min:x_max]
+        mask = mask[y_min:y_max, x_min:x_max]
+        if mask_dir is not None:
+            write_image(mask_path, mask)
+        return image, mask
     def load_images_and_masks(self, mask_dir=None, debug=True):
         if mask_dir is not None:
             mask_dir.mkdir(parents=True, exist_ok=True)
@@ -328,6 +344,7 @@ class OverlapTileDataset(Dataset):
             debug_dir = mask_dir.parent / "debug"
             debug_dir.mkdir(parents=True, exist_ok=True)
         annotations = list(self.annotations_dir.glob("*.json"))
+        annotations = list(mask_dir.glob("*.png"))
         l_mask = []
         l_images = []
         for ann in annotations:
@@ -336,25 +353,16 @@ class OverlapTileDataset(Dataset):
             except StopIteration:
                 continue
             image = load_image(img_path)
+            mask_path = mask_dir / f"{ann.stem}.png"
+            if mask_path.exists():
+                mask = load_image(mask_path)
+            else:
+                #convert to RGB
+                if image.shape[2] == 4:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+                mask = self.annotation_to_mask(ann, image)
 
-            #convert to RGB
-            if image.shape[2] == 4:
-                image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-            mask = self.annotation_to_mask(ann, image)
-            y, x = np.where(mask > 0)
-            y_min, y_max = np.min(y), np.max(y)
-            offset = 10
-            y_min = np.maximum(0, y_min - offset)
-            y_max = np.minimum(image.shape[0]-1, y_max + offset)
-            x_min, x_max = np.min(x), np.max(x)
-            x_min = np.maximum(0, x_min - offset)
-            x_max = np.minimum(image.shape[1]-1, x_max + offset)
-            #crop image and mask with an offset of 10 pixels
-            image = image[y_min:y_max, x_min:x_max]
-            mask = mask[y_min:y_max, x_min:x_max]
-            if mask_dir is not None:
-                mask_path = mask_dir / f"{ann.stem}.png"
-                write_image(mask_path, mask)
+            #image, mask = self.crop_image(image, mask, mask_dir, mask_path)
 
             if debug:
                 #overlay the mask over the image
@@ -362,7 +370,9 @@ class OverlapTileDataset(Dataset):
                 overlay[:,:,0] = mask
                 overlay = overlay_images(image, overlay, alpha=0.5, beta=0.5, gamma=0)
                 write_image(debug_dir / f"{ann.stem}.png", overlay)
-            mask = np.where(mask > 0, 1, 0)
+
+            #TODO: hay un bug menor donde la mascara se desconecta por un pixel.
+            mask = np.where(mask > 127, 1, 0)
             l_mask.append(mask)
             l_images.append(image)
 
