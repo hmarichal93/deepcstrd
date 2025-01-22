@@ -6,16 +6,16 @@ import segmentation_models_pytorch as smp
 
 from shapely.geometry import LineString
 from pathlib import Path
-
-from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images
 from urudendro.image import load_image, write_image
 from urudendro.drawing import Drawing, Color
+
+from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images
+
 
 class segmentation_model:
     UNET = 1
     UNET_PLUS_PLUS = 2
     MASK_RCNN = 3
-
 
 class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
@@ -293,7 +293,7 @@ def deep_learning_edge_detector(img,
 
     return m_ch_e, gy, gx
 def test_forward(debug=False):
-    weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth"
+    weights_path = "/runs/unet_experiment/latest_model.pth"
     image_path = "/data/maestria/resultados/deep_cstrd/pinus_v1/val/images/segmented/F02d.png"
     img = load_image(image_path)
     #convert to torch tensor

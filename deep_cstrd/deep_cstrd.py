@@ -4,8 +4,7 @@ import cv2
 
 from pathlib import Path
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import (connect_chains,
-                                                                                 postprocessing, chain_2_labelme_json,
-                                                                                 save_config, saving_results)
+                                                                                 postprocessing, chain_2_labelme_json)
 
 from deep_cstrd.preprocessing import preprocessing
 from deep_cstrd.sampling import sampling_edges

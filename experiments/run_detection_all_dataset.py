@@ -42,8 +42,14 @@ def generate_pdf(path):
 
     pdf.output(f"{path}/summary_ipol.pdf", 'F')
 
+class TRD:
+    CSTRD=1
+    INBD= 2
+    DEEPCSTRD=3
+
 def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
-         weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth", inbd=True):
+         weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
+         method=TRD.CSTRD):
 
     metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
     images_dir = Path(root_database) / "images/segmented"
@@ -70,17 +76,34 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
         if (img_res_dir / "labelme.json").exists():
             continue
 
-        command = f"python deep_cstrd.py --input {img_filename} --sigma {sigma} --cy {cx} --cx {cy}  --root ./ --output_dir" \
-                  f" {img_res_dir}  --weights_path {weights_path} --debug 1"
 
 
-        command = f"python deep_cstrd.py --input {img_filename} --sigma {sigma} --cy {cy} --cx {cx}  --root ./ --output_dir" \
-                  f" {img_res_dir}  --weights_path {weights_path}"
-        # command = f"python main.py --input {img_filename} --sigma {sigma} --cy {cx} --cx {cy}  --root ./ --output_dir" \
-        #           f" {img_res_dir} --hsize 1500 --wsize 1500 --save_imgs 1"
 
-        print(command)
-        os.system(command)
+        if method == TRD.CSTRD:
+            print("CSTRD")
+            from cross_section_tree_ring_detection.cross_section_tree_ring_detection import TreeRingDetection
+            from cross_section_tree_ring_detection.io import load_image
+            from cross_section_tree_ring_detection.utils import save_config, saving_results
+
+            args = dict(cy=cy, cx=cx, sigma=3, th_low=5, th_high=20,
+                        height=0, width=0, alpha=30, nr=360,
+                        mc=2)
+
+            im_in = load_image(str(img_filename))
+            res = TreeRingDetection(im_in, **args)
+            saving_results(res, img_res_dir, 1)
+
+        elif method == TRD.DEEPCSTRD:
+            print("DeepCSTRD")
+            command = f"python main.py --input {img_filename} --sigma {sigma} --cy {cy} --cx {cx}  --root ./ --output_dir" \
+                      f" {img_res_dir}  --weights_path {weights_path}"
+
+
+            print(command)
+            os.system(command)
+
+        else:
+            print("Method not implemented")
 
     generate_pdf(results_path)
 
@@ -95,9 +118,11 @@ if __name__=='__main__':
                         help='Path to the results directory')
     parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
                         help='Path to the weights directory')
+    parser.add_argument('--method', type=int, default=TRD.CSTRD,
+                        help='Method to use for tree ring detection. 1: CSTRD, 2: INBD, 3: DEEPCSTRD')
     args = parser.parse_args()
 
-    main(args.dataset_dir, args.results_path, args.weights_path)
+    main(args.dataset_dir, args.results_path, args.weights_path, args.method)
 
 
 

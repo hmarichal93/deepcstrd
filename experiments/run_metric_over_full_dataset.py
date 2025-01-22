@@ -46,8 +46,8 @@ def main_automatic(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v
             continue
 
         gt = Path(f"{gt_dir}/{sample}.json")
-        cx = row.cy
-        cy = row.cx
+        cx = row.cx
+        cy = row.cy
         img_resized = results_path / f"{sample}/image.png"
         #dt = resize_annotations( str(img_resized), str(img_path),str(dt))
         output_sample_dir = results_path / sample
@@ -78,10 +78,10 @@ def compute_statics(results_path):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root_database", type=str, required=False, default="/data/maestria/resultados/deep_cstrd/pinus_v1/test")
+    parser.add_argument("--dataset_dir", type=str, required=False, default="/data/maestria/resultados/deep_cstrd/pinus_v1/test")
     parser.add_argument("--results_path", type=str, required=False, default="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd")
     args = parser.parse_args()
 
-    res_path = main_automatic(args.root_database, args.results_path)
+    res_path = main_automatic(args.dataset_dir, args.results_path)
     compute_statics(res_path)
 
