@@ -1,7 +1,7 @@
 from urudendro.image import load_image
 from pathlib import Path
 
-from deep_cstrd.deep_cstrd import DeepTreeRingDetection
+from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import save_config, saving_results
 
 def main(args):
