@@ -1,7 +1,8 @@
 import torch
 import torchvision
 from skimage.morphology import skeletonize
-
+import cv2
+import numpy as np
 import segmentation_models_pytorch as smp
 
 from shapely.geometry import LineString
@@ -147,72 +148,15 @@ def rotate_image(image, center, angle=90):
     # Perform rotation
     rotated_image = cv2.warpAffine(image.copy(), rotation_matrix, (w, h))
     return rotated_image
-import cv2
-import numpy as np
 
-def rotate_image_with_padding(image, angle, cx, cy):
-    h, w = image.shape[:2]
 
-    # Calcular las distancias a las esquinas
-    distances = [
-        np.sqrt((cx - 0)**2 + (cy - 0)**2),
-        np.sqrt((cx - w)**2 + (cy - 0)**2),
-        np.sqrt((cx - 0)**2 + (cy - h)**2),
-        np.sqrt((cx - w)**2 + (cy - h)**2)
-    ]
-    max_dist = int(np.ceil(max(distances))) // 2
-
-    # Agregar padding
-    padded_image = cv2.copyMakeBorder(
-        image,
-        max_dist, max_dist, max_dist, max_dist,
-        borderType=cv2.BORDER_CONSTANT,
-        value=255  # Color blanco
-    )
-
-    # Ajustar las coordenadas del centro
-    new_cx, new_cy = cx + max_dist, cy + max_dist
-
-    # Crear la matriz de rotación
-    M = cv2.getRotationMatrix2D((new_cx, new_cy), angle, 1)
-
-    # Rotar la imagen
-    rotated_image = cv2.warpAffine(
-        padded_image,
-        M,
-        (padded_image.shape[1], padded_image.shape[0]),
-        borderValue=255
-    )
-
-    return rotated_image, max_dist
-
-def unrotate_and_crop(image, angle, cx, cy, original_shape, max_dist):
-    # Tamaño original
-    original_h, original_w = original_shape
-
-    # Ajustar el centro después del padding
-    new_cx, new_cy = cx + max_dist, cy + max_dist
-
-    # Anti-rotar la imagen
-    M_inv = cv2.getRotationMatrix2D((new_cx, new_cy), -angle, 1)
-    unrotated_image = cv2.warpAffine(
-        image,
-        M_inv,
-        (image.shape[1], image.shape[0]),
-        borderValue=255
-    )
-
-    # Recortar el padding
-    cropped_image = unrotated_image[max_dist:max_dist+original_h, max_dist:max_dist+original_w]
-
-    return cropped_image
 
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
                                 output_dir=None, cy=None, cx=None, debug=False, total_rotations=4):
     model = RingSegmentationModel(weights_path)
 
-    if total_rotations<1:
+    if total_rotations < 1:
         total_rotations = 1
 
     angle_range = np.arange(0,360, 360/total_rotations).tolist()
