@@ -221,6 +221,7 @@ if __name__ == "__main__":
                         help='Path to the dataset directory')
 
     parser.add_argument('--logs_dir', type=str, default="runs/pinus_v1_40_train_12_val")
+    parser.add_argument('--batch_size', type=int, default=4, help='Batch size')
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
@@ -229,5 +230,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
-          model_type=args.model_type, debug=args.debug)
+          model_type=args.model_type, debug=args.debug, batch_size=args.batch_size)
 
