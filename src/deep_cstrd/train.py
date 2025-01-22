@@ -1,9 +1,9 @@
 import os
 
-from dataset import OverlapTileDataset, split_dataset
-from utils import save_batch_with_labels_as_subplots
-from losses import DiceLoss, Loss
-from model import segmentation_model
+from deep_cstrd.dataset import OverlapTileDataset, split_dataset
+from deep_cstrd.utils import save_batch_with_labels_as_subplots
+from deep_cstrd.losses import DiceLoss, Loss
+from deep_cstrd.model import segmentation_model
 
 import segmentation_models_pytorch as smp
 import torch
@@ -50,7 +50,6 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
     test_dataset_dir = dataset_root / "test"
     if not train_dataset_dir.exists() or not val_dataset_dir.exists() or not test_dataset_dir.exists():
         split_dataset(dataset_root, val_size=0.2, test_size=0.2)
-
 
     #
     dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles,

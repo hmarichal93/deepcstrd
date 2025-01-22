@@ -1,16 +1,13 @@
 import torch
-import torch.nn.functional as F
 import torchvision
 from skimage.morphology import skeletonize
-import numpy as np
-import segmentation_models_pytorch as smp
-import cv2
 
-from skimage import io, measure
+import segmentation_models_pytorch as smp
+
 from shapely.geometry import LineString
 from pathlib import Path
 
-from dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images
+from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images
 from urudendro.image import load_image, write_image
 from urudendro.drawing import Drawing, Color
 
@@ -212,28 +209,27 @@ def unrotate_and_crop(image, angle, cx, cy, original_shape, max_dist):
 
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
-                                output_dir=None, cy=None, cx=None, debug=False):
+                                output_dir=None, cy=None, cx=None, debug=False, total_rotations=4):
     model = RingSegmentationModel(weights_path)
 
-    angle_range = [0,90,180,270]
-    #angle_range = [0]
-    pred_dict = {}
-    #add padding to the image equal to the distance between the center and the border
+    if total_rotations<1:
+        total_rotations = 1
 
-    original_shape = img.shape[:2]
+    angle_range = np.arange(0,360, 360/total_rotations).tolist()
+
+    pred_dict = {}
     for angle in angle_range:
         output_dir_angle = Path(output_dir) / f"{angle}"
         output_dir_angle.mkdir(parents=True, exist_ok=True)
         output_dir_angle = None if not debug else output_dir_angle
-        rot_image = rotate_image(img, (cx, cy), angle=angle)
-        #rot_image, max_dist = rotate_image_with_padding(img, angle, cx, cy)
 
+        rot_image = rotate_image(img, (cx, cy), angle=angle)
         pred = model.forward(rot_image, output_dir=output_dir_angle)
 
         pred = rotate_image(pred, (cx, cy), angle=-angle)
-        #pred = unrotate_and_crop(pred, angle, cx, cy, original_shape, max_dist)
 
         pred_dict[angle] = pred
+
     # Combine the predictions
     pred = np.zeros_like(pred_dict[angle])
     for angle in angle_range:
@@ -267,7 +263,7 @@ def deep_learning_edge_detector(img,
     # write the image to disk
     if output_dir and debug:
         write_image(f"{output_dir}/skel.png", skeleton)
-    #m_ch_e = model.compute_connected_components(skeleton)
+
     m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:

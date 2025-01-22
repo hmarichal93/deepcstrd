@@ -34,3 +34,24 @@ class DiceLoss(nn.Module):
 
         # Return mean loss over the batch
         return dice_loss.mean()
+
+class CrossEntropyLoss(nn.Module):
+    def __init__(self):
+        super(CrossEntropyLoss, self).__init__()
+
+    def forward(self, y_pred, y_true):
+        """
+        Compute the binary cross-entropy loss.
+        Args:
+            y_pred (Tensor): Predicted logits, shape (B, 1, H, W).
+            y_true (Tensor): Ground truth binary masks, shape (B, 1, H, W).
+
+        Returns:
+            Tensor: Binary cross-entropy loss for the batch.
+        """
+        y_true = y_true.float()  # Convert ground truth to float
+
+        # Compute binary cross-entropy loss
+        bce_loss = nn.BCEWithLogitsLoss()(y_pred, y_true)
+
+        return bce_loss

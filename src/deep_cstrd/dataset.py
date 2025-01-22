@@ -304,18 +304,20 @@ class OverlapTileDataset(Dataset):
         if debug:
             debug_dir = self.tiles_dir / "debug"
             debug_dir.mkdir(parents=True, exist_ok=True)
-            counter = 0
-            for t, l in zip(l_images, l_labels):
-                write_image(self.tiles_images_dir / f"{counter}.png", t)
-                write_image(self.tiles_masks_dir / f"{counter}.png", (l * 255).astype(np.uint))
 
+        counter = 0
+        for t, l in zip(l_images, l_labels):
+            write_image(self.tiles_images_dir / f"{counter}.png", t)
+            write_image(self.tiles_masks_dir / f"{counter}.png", (l * 255).astype(np.uint))
+
+            if debug:
                 #overlay the label (l) over the tile (t)
                 overlay = np.zeros_like(t)
                 overlay[:,:,0] = l*255
                 overlay = overlay_images(t, overlay, alpha=0.5, beta=0.5, gamma=0)
                 write_image(debug_dir / f"{counter}.png", overlay)
 
-                counter += 1
+            counter += 1
         return l_images, l_labels
 
 
