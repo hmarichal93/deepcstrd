@@ -3,7 +3,7 @@ import numpy as np
 from cross_section_tree_ring_detection.filter_edges import (change_reference_axis, normalized_row_matrix,
                                                             compute_angle_between_gradient_and_edges,
                                                             convert_masked_pixels_to_curves, get_border_curve,
-                                                            get_gradient_vector_for_each_edge_pixel)
+                                                            get_gradient_vector_for_each_edge_pixel, contour_to_curve)
 
 
 def filter_edges_by_threshold(m_ch_e, theta, alpha_low=30, alpha_high=150):
@@ -44,6 +44,14 @@ def filter_edges(m_ch_e, cy, cx, Gx, Gy, alpha, im_pre):
     l_ch_f = convert_masked_pixels_to_curves(X_edges_filtered)
     # Line 8  Border disk is added as a curve
     border_curve = get_border_curve(im_pre, l_ch_f)
+    from shapely.geometry import Polygon
+    poly = Polygon(border_curve)
+    if not poly.is_closed:
+        #border curve is not closed. Therefore curve is the border of the images
+        H,W = im_pre.shape[:2]
+        border_contour = np.array([[1,1],[W-1,1],[W-1,H-1],[1,H-1], [1,1]]).tolist()
+        border_curve = contour_to_curve(border_contour, len(l_ch_f))
+
     # Line 9
     l_ch_f.append(border_curve)
     return l_ch_f
