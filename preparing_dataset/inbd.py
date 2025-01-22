@@ -152,6 +152,15 @@ def main(root_database = "/data/maestria/datasets/Candice_inbd_1500/", output_di
 
 
 
+def remove_background_from_disk_in_folder(folder):
+    from urudendro.remove_salient_object import remove_salient_object
+    for image_path in folder.rglob("*.png"):
+        image_path = str(image_path)
+        remove_salient_object(image_path, image_path)
+        #write_image(image_path, mask)
+
+    return
+
 
 if __name__ == "__main__":
     import argparse
@@ -160,4 +169,5 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str, default="/data/maestria/resultados/deep_cstrd/EH_1500")
 
     args = parser.parse_args()
-    main(root_database= args.root_database, output_dir=  args.output_dir)
+    #main(root_database= args.root_database, output_dir=  args.output_dir)
+    remove_background_from_disk_in_folder(Path("/data/maestria/resultados/deep_cstrd/EH_1500/test/images/segmented"))
