@@ -3,6 +3,7 @@ from pathlib import Path
 
 from deep_cstrd.deep_cstrd import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import save_config, saving_results
+
 def main(args):
     save_config(args, args.root, args.output_dir)
     if not Path(args.input).exists():
@@ -14,8 +15,7 @@ def main(args):
 
     res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.sigma, args.th_low, args.th_high, args.hsize, args.wsize,
                             args.edge_th, args.nr, args.min_chain_length, args.weights_path, args.total_rotations,
-                            args.debug,
-                            args.input, args.output_dir)
+                            args.debug, args.input, args.output_dir)
 
     saving_results(res, args.output_dir, args.save_imgs)
 
