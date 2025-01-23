@@ -166,13 +166,16 @@ def generate_random_vector_multinomial_numpy(size, percentage):
     return vector
 
 class OverlapTileDataset(Dataset):
-    def __init__(self, dataset_dir: Path, tile_size: int, overlap: int, tiles: bool = True, augmentation: bool = False,
+    def __init__(self, dataset_dir: Path, tile_size: int, overlap: float,augmentation: bool = False,
                  augment_percentage=20,
                  debug: bool = True):
         self.images_dir = dataset_dir / "images/segmented"
         self.annotations_dir = dataset_dir / "annotations/labelme/images/"
         self.mask_dir = dataset_dir / "masks"
         self.augment_percentage = augment_percentage
+        if not ((tile_size % 32 ) == 0 ):
+            raise "Tile size must be divisible by 32"
+
         if debug:
             self.tiles_dir = dataset_dir / "tiles"
             if self.tiles_dir.exists():
@@ -185,7 +188,7 @@ class OverlapTileDataset(Dataset):
             self.tiles_masks_dir.mkdir(parents=True, exist_ok=True)
 
 
-        self.images, self.labels = self.load_data(tiles, tile_size, overlap, augmentation, debug)
+        self.images, self.labels = self.load_data(tile_size, overlap, augmentation, debug)
 
     def augment_data(self, images, masks, percentage, horizontal_flip=True, vertical_flip=True, occlusions=True,
                      elastic_deformation=True, rotation=True):
@@ -270,12 +273,13 @@ class OverlapTileDataset(Dataset):
 
         return image
 
-    def load_data(self, tiles, tile_size, overlap, augmentation, debug):
+    def load_data(self, tile_size, overlap, augmentation, debug):
         images, masks = self.load_images_and_masks(mask_dir=self.mask_dir)
 
 
         l_images, l_labels = [], []
-        if tiles:
+
+        if tile_size > 0:
             for image, mask in zip(images, masks):
                 tiles, labels = create_tiles_with_labels(image, mask, tile_size, overlap)
                 l_images.extend(tiles)
