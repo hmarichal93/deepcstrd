@@ -26,6 +26,8 @@ ROOT_DIR=$1
 DATASET_DIR=$2
 LOGS_DIR=$3
 MODEL_TYPE=$4
+BATCH_SIZE=$5
+TILE_SIZE=$6
 #install conda environemtnt
 cd $ROOT_DIR
 #conda env create -f src/environment.yml
@@ -60,7 +62,7 @@ ls -l $NODE_DATASET_DIR
 # Run the program
 echo "Running the program"
 cd $ROOT_DIR
-python src/train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --model_type $MODEL_TYPE
+python src/train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --model_type $MODEL_TYPE --batch_size $BATCH_SIZE --tile_size $TILE_SIZE
 
 
 # -------------------------------------------------------
