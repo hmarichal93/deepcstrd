@@ -15,7 +15,7 @@ def main(args):
 
     res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.sigma, args.th_low, args.th_high, args.hsize, args.wsize,
                             args.edge_th, args.nr, args.min_chain_length, args.weights_path, args.total_rotations,
-                            args.debug, args.input, args.output_dir)
+                            args.debug, args.input, args.output_dir, args.tile_size)
 
     saving_results(res, args.output_dir, args.save_imgs)
 
@@ -42,6 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--th_low", type=int, required=False, default=5)
     parser.add_argument("--min_chain_length", type=int, required=False, default=2)
     parser.add_argument("--total_rotations", type=int, required=False, default=4)
+    parser.add_argument('--tile_size', type=int, required=False, default=0)
     parser.add_argument("--debug", type=int, required=False)
 
     args = parser.parse_args()
