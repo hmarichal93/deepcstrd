@@ -52,7 +52,8 @@ class RingSegmentationModel:
             raise ValueError("Invalid model type")
 
         model.load_state_dict(torch.load(weights_path))
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cpu")
         model = model.to(device)
         self.device = device
         return model
@@ -153,6 +154,17 @@ def rotate_image(image, center, angle=90):
     return rotated_image
 
 
+def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False):
+    #skeletonizing the mask
+    skeleton = skeletonize(pred)
+    skeleton = np.where(skeleton, 255, 0)  # Skeletonize the mask
+
+    # write the image to disk
+    if output_dir and debug:
+        write_image(f"{output_dir}/skel.png", skeleton)
+
+    m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir, debug)
+    return m_ch_e
 
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
@@ -207,16 +219,7 @@ def deep_learning_edge_detector(img,
     #binarize the mask
     th = len(angle_range) / 3
     pred = (pred >= th).astype(np.uint8)  # Binarize the mask
-
-    #skeletonizing the mask
-    skeleton = skeletonize(pred)
-    skeleton = np.where(skeleton, 255, 0)  # Skeletonize the mask
-
-    # write the image to disk
-    if output_dir and debug:
-        write_image(f"{output_dir}/skel.png", skeleton)
-
-    m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir, debug)
+    m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:
         #write_image("labels.png", labels)
