@@ -79,15 +79,15 @@ class RingSegmentationModel:
             if tile_size > 0:
                 pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
 
-            write_image(f"{output_dir}/pred.png", (pred * 255).astype(np.uint8))
+            if output_dir:
+                write_image(f"{output_dir}/pred.png", (pred * 255).astype(np.uint8))
 
         return pred
 
 
-    def compute_connected_components_by_contour(self, skeleton, output_dir, debug=True):
+    def compute_connected_components_by_contour(self, skeleton, output_dir, debug=True, minimum_length=10):
 
-        contours, hierarchy = cv2.findContours(skeleton.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        #contours, hierarchy = cv2.findContours(skeleton.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(skeleton.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         if debug:
             from urudendro.drawing import Drawing, Color
             from shapely.geometry import LineString
@@ -96,17 +96,17 @@ class RingSegmentationModel:
             color = Color()
 
         m_ch_e = []
-        #sort contours by size descinding
         contours = sorted(contours, key=lambda x: x.shape[0], reverse=True)
         for idx, c in enumerate(contours):
+            c = c.squeeze()
             c_shape = c.shape[0]
-            if c_shape < 2:
+            if c_shape < minimum_length:
                 continue
 
-            m_ch_e.extend(c[:,0].tolist() + [[-1,-1]])
+            m_ch_e.extend(c.tolist() + [[-1,-1]])
 
             if debug:
-                poly = LineString(c[:, 0][:, ::-1])
+                poly = LineString(c[:, ::-1])
                 img = Drawing.curve(poly.coords, img, color.get_next_color())
 
         if debug:
@@ -153,17 +153,66 @@ def rotate_image(image, center, angle=90):
     rotated_image = cv2.warpAffine(image.copy(), rotation_matrix, (w, h))
     return rotated_image
 
+import numpy as np
+from scipy.spatial import distance
 
-def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False):
-    #skeletonizing the mask
+
+def find_extreme_points(skeleton_points):
+    """Encuentra los puntos extremos del esqueleto."""
+    from scipy.spatial import cKDTree
+
+    # Crear un árbol KD para calcular los vecinos
+    tree = cKDTree(skeleton_points)
+    extremes = []
+
+    for point in skeleton_points:
+        # Buscar vecinos dentro de un radio pequeño (8-conectividad)
+        distances, indices = tree.query(point, k=9)
+        neighbor_count = np.sum(distances < 1.5) - 1  # Ignorar el punto mismo
+        if neighbor_count == 1:
+            extremes.append(tuple(point))
+
+    return extremes
+def order_points(skeleton_points):
+    """Ordenar puntos del esqueleto por proximidad usando un árbol KDTree."""
+    from scipy.spatial import KDTree
+
+    ordered = []
+    remaining = set(map(tuple, skeleton_points))  # Convertir puntos a tuplas
+    extremes = find_extreme_points(skeleton_points)
+    if len(extremes) == 0:
+        return None
+    current = extremes[0]
+    ordered.append(current)
+
+    while remaining:
+        # Crear un árbol KD para buscar el vecino más cercano
+        tree = KDTree(list(remaining))
+        _, idx = tree.query(current)  # Buscar el vecino más cercano
+        current = list(remaining)[idx]
+        ordered.append(current)
+        remaining.remove(current)
+
+    return ordered
+
+def regions_to_curves(skeleton):
+    from skimage.measure import label, regionprops
+
+    labeled_image = label(skeleton, connectivity=2)
+    m_ch_e = []
+    for region_label in range(1, labeled_image.max() + 1):
+        region_points = np.argwhere(labeled_image == region_label)
+        ordered_points = order_points(region_points)
+        if ordered_points is None:
+            continue
+        m_ch_e.extend(ordered_points + [[-1, -1]])
+    m_ch_e = np.array(m_ch_e)
+    return m_ch_e
+def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False, ):
+    from skimage.morphology import skeletonize
     skeleton = skeletonize(pred)
-    skeleton = np.where(skeleton, 255, 0)  # Skeletonize the mask
-
-    # write the image to disk
-    if output_dir and debug:
-        write_image(f"{output_dir}/skel.png", skeleton)
-
-    m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir, debug)
+    #m_ch_e = regions_to_curves(skeleton)
+    m_ch_e = model.compute_connected_components_by_contour(np.where(skeleton, 255, 0), output_dir, debug)
     return m_ch_e
 
 def deep_learning_edge_detector(img,
@@ -189,9 +238,7 @@ def deep_learning_edge_detector(img,
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)
         pred = model.forward(rot_image, output_dir=output_dir_angle, tile_size=tile_size)
-
         pred = rotate_image(pred, (cx, cy), angle=-angle)
-
         pred_dict[angle] = pred
 
     # Combine the predictions
@@ -202,19 +249,7 @@ def deep_learning_edge_detector(img,
     #clip the values to 0
     # scale the values to 0-255
     if output_dir and debug:
-        pred_scaled = (pred * 255).astype(np.uint8)
-        #overlay the prediction on the image
-        overlay = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-        overlay[:,:,0] = pred_scaled
-        overlay = overlay_images(img.astype(np.uint8), overlay, alpha=0.5, beta=0.5, gamma=0)
-
-        #draw over the image the center
-        overlay = Drawing.circle(overlay, (cx, cy), thickness=-1, color=Color.red, radius=5)
-
-
-        write_image(f"{output_dir}/overlay.png", overlay)
-
-
+        draw_pred_mask(pred, img, output_dir, cx, cy)
 
     #binarize the mask
     th = len(angle_range) / 3
@@ -222,31 +257,49 @@ def deep_learning_edge_detector(img,
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:
-        #write_image("labels.png", labels)
-        debug_image = img.copy()
+        draw_normals(img, m_ch_e, gx, gy, output_dir)
 
-        amp = 10
-        for idx in range(len(m_ch_e)):
-            p0 = m_ch_e[idx]
-            i = int(p0[0])
-            j = int(p0[1])
-
-            p1 = p0 + amp*np.array([gy[j,i], gx[j,i]])
-            p1 = p1.astype(int)
-            if p0[0] < 1 or p0[1] < 1 or p1[0] < 1 or p1[1] < 1:
-                continue
-            points = np.stack([p0,p1])[:,::-1]
-            line = LineString(points)
-            debug_image = Drawing.radii(line.coords, debug_image, color=Color.blue, thickness=1)
-
-        for p in m_ch_e:
-            if p[0] == -1:
-                continue
-            debug_image = Drawing.circle(debug_image, p, thickness=-1, color=Color.black, radius=1)
-
-        write_image(f"{output_dir}/normals.png", debug_image)
 
     return m_ch_e, gy, gx
+
+def draw_normals(img, m_ch_e, gx, gy, output_dir):
+    debug_image = img.copy()
+
+    amp = 10
+    for idx in range(len(m_ch_e)):
+        p0 = m_ch_e[idx]
+        i = int(p0[0])
+        j = int(p0[1])
+
+        p1 = p0 + amp*np.array([gy[j,i], gx[j,i]])
+        p1 = p1.astype(int)
+        if p0[0] < 1 or p0[1] < 1 or p1[0] < 1 or p1[1] < 1:
+            continue
+        points = np.stack([p0,p1])[:,::-1]
+        line = LineString(points)
+        debug_image = Drawing.radii(line.coords, debug_image, color=Color.blue, thickness=1)
+
+    for p in m_ch_e:
+        if p[0] == -1:
+            continue
+        debug_image = Drawing.circle(debug_image, p, thickness=-1, color=Color.black, radius=1)
+
+    write_image(f"{output_dir}/normals.png", debug_image)
+    return
+
+def draw_pred_mask(pred, img, output_dir, cx, cy):
+    pred_scaled = (pred * 255).astype(np.uint8)
+    #overlay the prediction on the image
+    overlay = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
+    overlay[:,:,0] = pred_scaled
+    overlay = overlay_images(img.astype(np.uint8), overlay, alpha=0.5, beta=0.5, gamma=0)
+
+    #draw over the image the center
+    overlay = Drawing.circle(overlay, (cx, cy), thickness=-1, color=Color.red, radius=5)
+
+
+    write_image(f"{output_dir}/overlay.png", overlay)
+    return
 def test_forward(debug=False):
     weights_path = "/runs/unet_experiment/latest_model.pth"
     image_path = "/data/maestria/resultados/deep_cstrd/pinus_v1/val/images/segmented/F02d.png"
