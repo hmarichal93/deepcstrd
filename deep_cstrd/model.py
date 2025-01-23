@@ -10,7 +10,7 @@ from pathlib import Path
 from urudendro.image import load_image, write_image
 from urudendro.drawing import Drawing, Color
 
-from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images
+from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images, padding_image
 
 
 class segmentation_model:
@@ -154,6 +154,11 @@ def rotate_image(image, center, angle=90):
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
                                 output_dir=None, cy=None, cx=None, debug=False, total_rotations=4):
+
+    h, w = img.shape[:2]
+    if h % 32 != 0 or w % 32 != 0:
+        img = padding_image(img, 32)
+
     model = RingSegmentationModel(weights_path)
 
     if total_rotations < 1:

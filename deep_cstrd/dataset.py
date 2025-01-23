@@ -165,6 +165,20 @@ def generate_random_vector_multinomial_numpy(size, percentage):
     vector[indices] = 1
     return vector
 
+
+def padding_image(image, multiple=32, value = 255):
+    h, w = image.shape[:2]
+    max_dim = np.maximum(h, w)
+    new_size = (np.ceil(max_dim / multiple) * multiple).astype(int)
+
+    if image.ndim == 3:
+        aux = np.zeros((new_size, new_size, 3), dtype=np.uint8) + value
+    else:
+        aux = np.zeros((new_size, new_size), dtype=np.uint8) + value
+    aux[:h, :w] = image
+    return aux
+
+
 class OverlapTileDataset(Dataset):
     def __init__(self, dataset_dir: Path, tile_size: int, overlap: float,augmentation: bool = False,
                  augment_percentage=20,
@@ -348,7 +362,7 @@ class OverlapTileDataset(Dataset):
             debug_dir = mask_dir.parent / "debug"
             debug_dir.mkdir(parents=True, exist_ok=True)
         annotations = list(self.annotations_dir.glob("*.json"))
-        annotations = list(mask_dir.glob("*.png"))
+        #annotations = list(mask_dir.glob("*.png"))
         l_mask = []
         l_images = []
         for ann in annotations:
@@ -357,16 +371,22 @@ class OverlapTileDataset(Dataset):
             except StopIteration:
                 continue
             image = load_image(img_path)
-            mask_path = mask_dir / f"{ann.stem}.png"
-            if mask_path.exists():
-                mask = load_image(mask_path)
-            else:
-                #convert to RGB
-                if image.shape[2] == 4:
-                    image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-                mask = self.annotation_to_mask(ann, image)
+            #mask_path = mask_dir / f"{ann.stem}.png"
+            # if mask_path.exists():
+            #     mask = load_image(mask_path)
+            # else:
+            #convert to RGB
+            if image.shape[2] == 4:
+                image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+            mask = self.annotation_to_mask(ann, image)
 
-            #image, mask = self.crop_image(image, mask, mask_dir, mask_path)
+            h,w = mask.shape
+            if h % 32 != 0 or w % 32 != 0 or not (h==w):
+                #padd the mask to be divisible by 32. UNET requires this
+                mask = padding_image(mask)
+                image = padding_image(image)
+                h,w = mask.shape
+
 
             if debug:
                 #overlay the mask over the image
@@ -376,14 +396,14 @@ class OverlapTileDataset(Dataset):
                 write_image(debug_dir / f"{ann.stem}.png", overlay)
 
             #TODO: hay un bug menor donde la mascara se desconecta por un pixel.
-            mask = np.where(mask > 127, 1, 0)
+            mask = np.where(mask > 0, 1, 0)
             l_mask.append(mask)
             l_images.append(image)
 
 
         return l_images, l_mask
 
-    def annotation_to_mask(self, annotation, img, boundaries_thickness = 3):
+    def annotation_to_mask(self, annotation, img, boundaries_thickness = 1):
         """
         Transform annotation to mask
         :param annotation: annotation path
