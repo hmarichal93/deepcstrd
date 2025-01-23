@@ -167,42 +167,56 @@ def find_extreme_points(skeleton_points):
 
     for point in skeleton_points:
         # Buscar vecinos dentro de un radio pequeño (8-conectividad)
-        distances, indices = tree.query(point, k=9)
+        distances, indices = tree.query(point, k=17)
         neighbor_count = np.sum(distances < 1.5) - 1  # Ignorar el punto mismo
         if neighbor_count == 1:
             extremes.append(tuple(point))
 
     return extremes
-def order_points(skeleton_points):
-    """Ordenar puntos del esqueleto por proximidad usando un árbol KDTree."""
-    from scipy.spatial import KDTree
+def order_points_continuous(skeleton_points, start_point):
+    """Ordena los puntos del esqueleto en una lista continua."""
+    skeleton_points = set(map(tuple, skeleton_points))  # Convertir a tuplas para facilitar la búsqueda
+    ordered_points = []
+    current_point = start_point
 
-    ordered = []
-    remaining = set(map(tuple, skeleton_points))  # Convertir puntos a tuplas
-    extremes = find_extreme_points(skeleton_points)
-    if len(extremes) == 0:
-        return None
-    current = extremes[0]
-    ordered.append(current)
+    while skeleton_points:
+        ordered_points.append(current_point)
+        skeleton_points.remove(current_point)
 
-    while remaining:
-        # Crear un árbol KD para buscar el vecino más cercano
-        tree = KDTree(list(remaining))
-        _, idx = tree.query(current)  # Buscar el vecino más cercano
-        current = list(remaining)[idx]
-        ordered.append(current)
-        remaining.remove(current)
+        # Encontrar el vecino más cercano
+        neighbors = [(current_point[0] + dx, current_point[1] + dy)
+                     for dx in [-1, 0, 1] for dy in [-1, 0, 1] if (dx, dy) != (0, 0)]
+        next_point = None
+        for neighbor in neighbors:
+            if neighbor in skeleton_points:
+                next_point = neighbor
+                break
+        if next_point is None:
+            break
+        current_point = next_point
 
-    return ordered
+    return np.array(ordered_points)[:,[1,0]].tolist()
+
+def regions_to_curves_with_skimage(skeleton):
+    from skimage.measure import label, regionprops, find_contours
+    contours = find_contours(skeleton, 0.5, fully_connected="high")
+    m_ch_e = []
+    for c in contours:
+        c = np.round(c[:,[1,0]]).astype(int)
+        m_ch_e.extend(c.tolist() + [[-1, -1]])
+    return np.array(m_ch_e)
 
 def regions_to_curves(skeleton):
-    from skimage.measure import label, regionprops
+    from skimage.measure import label, regionprops, find_contours
 
-    labeled_image = label(skeleton, connectivity=2)
+    labeled_image = label(skeleton, connectivity=1)
     m_ch_e = []
     for region_label in range(1, labeled_image.max() + 1):
         region_points = np.argwhere(labeled_image == region_label)
-        ordered_points = order_points(region_points)
+        extremes = find_extreme_points(region_points)
+        if not extremes:
+            continue
+        ordered_points = order_points_continuous(region_points, extremes[0])
         if ordered_points is None:
             continue
         m_ch_e.extend(ordered_points + [[-1, -1]])
@@ -212,6 +226,7 @@ def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False, ):
     from skimage.morphology import skeletonize
     skeleton = skeletonize(pred)
     #m_ch_e = regions_to_curves(skeleton)
+    #m_ch_e = regions_to_curves_with_skimage(skeleton)
     m_ch_e = model.compute_connected_components_by_contour(np.where(skeleton, 255, 0), output_dir, debug)
     return m_ch_e
 
@@ -252,7 +267,7 @@ def deep_learning_edge_detector(img,
         draw_pred_mask(pred, img, output_dir, cx, cy)
 
     #binarize the mask
-    th = len(angle_range) / 3
+    th = total_rotations / 2
     pred = (pred >= th).astype(np.uint8)  # Binarize the mask
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
