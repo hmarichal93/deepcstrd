@@ -53,28 +53,31 @@ class RingSegmentationModel:
 
         model.load_state_dict(torch.load(weights_path))
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        device = "cpu"
         model = model.to(device)
         self.device = device
         return model
 
-    def forward(self, img, output_dir=None):
+    def forward(self, img, output_dir=None, tile_size=0):
         if output_dir:
             write_image(f"{output_dir}/img.png", img)
-        image, _ = create_tiles_with_labels(img, img, tile_size=self.tile_size, overlap=self.overlap)
+        if tile_size>0:
+            image, _ = create_tiles_with_labels(img, img, tile_size=self.tile_size, overlap=self.overlap)
+        else:
+            image = np.array([img])
         image = torch.from_numpy(image)
 
         with torch.no_grad():
             #split the image into tiles
             image = image.permute(0, 3, 1, 2).float() / 255.0  # Normalize to [0, 1]
-            # if self.device.type == "cuda":
-            #     # convert rotated image to tensor
-            #     image = image.to(self.device)
+            if self.device.type == "cuda":
+                # convert rotated image to tensor
+                image = image.to(self.device)
             pred = self.model(image)
             pred = torch.sigmoid(pred)  # Apply sigmoid to get probabilities
             pred = pred.squeeze().cpu().numpy()  # Convert to numpy array
+            if tile_size > 0:
+                pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
 
-            pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
             write_image(f"{output_dir}/pred.png", (pred * 255).astype(np.uint8))
 
         return pred
@@ -153,7 +156,7 @@ def rotate_image(image, center, angle=90):
 
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
-                                output_dir=None, cy=None, cx=None, debug=False, total_rotations=4):
+                                output_dir=None, cy=None, cx=None, debug=False, total_rotations=4, tile_size=0):
 
     h, w = img.shape[:2]
     if h % 32 != 0 or w % 32 != 0:
@@ -173,7 +176,7 @@ def deep_learning_edge_detector(img,
         output_dir_angle = None if not debug else output_dir_angle
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)
-        pred = model.forward(rot_image, output_dir=output_dir_angle)
+        pred = model.forward(rot_image, output_dir=output_dir_angle, tile_size=tile_size)
 
         pred = rotate_image(pred, (cx, cy), angle=-angle)
 
