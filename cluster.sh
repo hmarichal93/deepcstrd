@@ -24,10 +24,9 @@ source /clusteruy/home/henry.marichal/miniconda3/etc/profile.d/conda.sh
 #el espacio local a utilizar se reserva dcon --tmp=XXXGb
 ROOT_DIR=$1
 DATASET_DIR=$2
-LOGS_DIR=$3
-MODEL_TYPE=$4
-BATCH_SIZE=$5
-TILE_SIZE=$6
+MODEL_TYPE=$3
+BATCH_SIZE=$4
+TILE_SIZE=$5
 #install conda environemtnt
 cd $ROOT_DIR
 #conda env create -f src/environment.yml
@@ -39,7 +38,7 @@ NODE_SSD_DIR=/scratch/henry.marichal
 #copy dataset to local disk
 NODE_DATASET_DIR=$NODE_SSD_DIR/dataset
 NODE_LOGS_DIR=$NODE_SSD_DIR/logs
-LOCAL_LOGS_DIR="$ROOT_DIR/src/runs/$LOGS_DIR"
+LOCAL_LOGS_DIR="$ROOT_DIR/runs/"
 #copy dataset to local disk
 echo "Removing old dataset from local disk"
 
