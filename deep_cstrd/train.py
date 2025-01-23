@@ -45,7 +45,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
 
     logs_dir = Path(logs_dir)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_tile_{int(tile_size)}_batch_{batch_size}"
+    logs_name = f"{dataset_name}_tile_{int(tile_size)}_batch_{batch_size}_step_{step_size}"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug)
     # Create the datasets for train, validation and test
@@ -236,6 +236,7 @@ if __name__ == "__main__":
     parser.add_argument('--logs_dir', type=str, default="runs/pinus_v1_40_train_12_val")
     parser.add_argument('--batch_size', type=int, default=4, help='Batch size')
     parser.add_argument('--tile_size', type=int, default=512, help='Tile size')
+    parser.add_argument('--step_size', type=int, default=20, help='Step size for the learning rate scheduler')
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
