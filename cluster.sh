@@ -61,7 +61,7 @@ ls -l $NODE_DATASET_DIR
 # Run the program
 echo "Running the program"
 cd $ROOT_DIR
-python deep_cstrd/train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --model_type $MODEL_TYPE --batch_size $BATCH_SIZE --tile_size $TILE_SIZE
+python train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --model_type $MODEL_TYPE --batch_size $BATCH_SIZE --tile_size $TILE_SIZE
 
 
 # -------------------------------------------------------
