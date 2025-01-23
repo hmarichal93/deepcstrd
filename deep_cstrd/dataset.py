@@ -166,7 +166,7 @@ def generate_random_vector_multinomial_numpy(size, percentage):
     return vector
 
 
-def padding_image(image, multiple=32, value = 255):
+def padding_image(image:np.array, multiple: int =32, value: np.uint8 = 255) -> np.array:
     h, w = image.shape[:2]
     max_dim = np.maximum(h, w)
     new_size = (np.ceil(max_dim / multiple) * multiple).astype(int)
