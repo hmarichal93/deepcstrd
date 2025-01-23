@@ -43,7 +43,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
           loss = Loss.dice , augmentation = False, model_type=segmentation_model.UNET,debug=False):
 
-    logs_dir = Path(logs_dir).parent
+    logs_dir = Path(logs_dir)
     dataset_name = Path(dataset_root).name
     logs_name = f"{dataset_name}_tile_{int(tile_size)}_batch_{batch_size}"
     logs_dir = str(logs_dir / logs_name)
@@ -56,11 +56,11 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
         split_dataset(dataset_root, val_size=0.2, test_size=0.2)
 
     #
-    dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles,
+    dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True,
                                        augmentation=augmentation)
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
 
-    dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, tiles=tiles)
+    dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True)
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
 
     # Define the model
@@ -99,6 +99,10 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
     # Ensure the model is moved to the GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
+    min_running_loss = 1000000
+    best_epoch = 0
+    if Path(f"{logs_dir}/best_model.pth").exists():
+        model.load_state_dict(torch.load(f"{logs_dir}/best_model.pth"))
 
     for epoch in range(number_of_epochs):  # Number of epochs
         running_loss = 0.0  # Track total loss for the epoch
@@ -192,20 +196,24 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
                 writer.add_scalar("Val Loss/Batch", loss.item(), epoch * len(dataloader_val) + batch_idx)
 
                 # Example after getting predictions
-                if debug and epoch % step_size == 0 and (epoch>0 or epoch == number_of_epochs-1) :
-                    save_batch_with_labels_as_subplots(
-                        images,
-                        labels,
-                        predictions,
-                        output_path= epoch_batch_images_dir / f"val_{batch_idx}.png",
-                        batch_size=batch_size
-                    )
+                # if debug and epoch % step_size == 0 and (epoch>0 or epoch == number_of_epochs-1) :
+                #     save_batch_with_labels_as_subplots(
+                #         images,
+                #         labels,
+                #         predictions,
+                #         output_path= epoch_batch_images_dir / f"val_{batch_idx}.png",
+                #         batch_size=batch_size
+                #     )
 
 
             # Epoch summary
             epoch_loss = running_loss / len(dataloader_val)
             print(f"Validation Loss: {epoch_loss:.4f}")
             writer.add_scalar("Val Loss/Epoch", epoch_loss, epoch)
+            if epoch_loss < min_running_loss:
+                min_running_loss = epoch_loss
+                torch.save(model.state_dict(), f"{logs_dir}/best_model.pth")
+                best_epoch = epoch
 
 
         model.train()
@@ -213,6 +221,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
 
     #save model
     torch.save(model.state_dict(), f"{logs_dir}/model.pth")
+    print(f"Best model in epoch {best_epoch} with loss {min_running_loss}")
     # Close the writer after training
     writer.close()
 
