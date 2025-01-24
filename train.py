@@ -245,5 +245,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
-          model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size)
+          model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size, step_size=args.step_size)
 
