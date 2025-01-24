@@ -256,18 +256,18 @@ def deep_learning_edge_detector(img,
         pred = rotate_image(pred, (cx, cy), angle=-angle)
         pred_dict[angle] = pred
 
-    # Combine the predictions
+    # Combine the predictions computing the average
     pred = np.zeros_like(pred_dict[angle])
     for angle in angle_range:
         pred += pred_dict[angle]
-
+    pred = pred / total_rotations
     #clip the values to 0
     # scale the values to 0-255
     if output_dir and debug:
         draw_pred_mask(pred, img, output_dir, cx, cy)
 
     #binarize the mask
-    th = total_rotations / 2
+    th = 0.5
     pred = (pred >= th).astype(np.uint8)  # Binarize the mask
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])

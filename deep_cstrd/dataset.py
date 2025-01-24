@@ -110,7 +110,7 @@ def create_tiles_with_labels(image, mask, tile_size, overlap):
             mask_tiles.append(mask_tile)
     return np.array(image_tiles), np.array(mask_tiles)
 
-def overlay_images(background, overlay, alpha=0.5, beta=0.5, gamma=0):
+def overlay_images(background, overlay, alpha=1, beta=0.5, gamma=0):
     # Blend the images
     blended = cv2.addWeighted(background, alpha, overlay.astype(np.uint8), beta, gamma)
     return blended
@@ -119,9 +119,9 @@ def from_tiles_to_image(tiles, tile_size, original_image, overlap=0.2, output_di
     # Reconstruct the image from the tiles
     max_value = np.max(tiles)
     image = np.zeros((original_image.shape[0] , original_image.shape[1]), dtype=tiles.dtype)
+    overlapping_pixel_count = np.zeros((original_image.shape[0], original_image.shape[1]), dtype=int)
     H,W = original_image.shape[:2]
     stride = int(tile_size * (1 - overlap))
-    image_tiles, mask_tiles = [], []
     idx = 0
     for i in range(0, H, stride):
         for j in range(0, W , stride):
@@ -134,6 +134,7 @@ def from_tiles_to_image(tiles, tile_size, original_image, overlap=0.2, output_di
                 j = W - tile_size
 
             image[i:i_max, j:j_max]+= tiles[idx][:(i_max-i),:(j_max-j)]
+            overlapping_pixel_count[i:i_max, j:j_max] += 1
             if output_dir:
                 debug_image = img.copy()
                 pred_tile = np.zeros(((i_max-i), (j_max-j), 3), dtype=np.uint8)
@@ -146,6 +147,8 @@ def from_tiles_to_image(tiles, tile_size, original_image, overlap=0.2, output_di
                 write_image(f"{output_dir}/tile_{idx}.png", debug_image)
 
             idx += 1
+    overlapping_pixel_count[overlapping_pixel_count==0] = 1
+    image = image / overlapping_pixel_count
     return np.clip(image,0,max_value)
 
 def generate_random_vector_multinomial_numpy(size, percentage):
