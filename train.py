@@ -39,7 +39,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"debug: {debug}\n")
 
 def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
-          tile_size=512, overlap=0.1, batch_size=4,
+          tile_size=512, overlap=0, batch_size=4,
           lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
           loss = Loss.dice , augmentation = False, model_type=segmentation_model.UNET,debug=False):
 
@@ -58,7 +58,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
     #
     dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True,
                                        augmentation=augmentation)
-    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=False)
 
     dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True)
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
@@ -98,6 +98,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
 
     # Ensure the model is moved to the GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #device = torch.device('cpu')
     model = model.to(device)
     min_running_loss = 1000000
     best_epoch = 0
@@ -116,7 +117,9 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
 
         for batch_idx, batch in enumerate(dataloader_train):
             images, labels = batch
-
+            batch_size, tiles_number, tiles_size, _, channels = images.shape
+            images = images.view(batch_size * tiles_number, tiles_size, tiles_size, channels)
+            labels = labels.view(batch_size * tiles_number, tiles_size, tiles_size)
             # Preprocess images
             images = images.permute(0, 3, 1, 2).float() / 255.0  # Normalize to [0, 1]
             labels = labels.float().unsqueeze(1)  # Add channel dimension
@@ -174,6 +177,9 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
             running_loss = 0.0
             for batch_idx, batch in enumerate(dataloader_val):
                 images, labels = batch
+                batch_size, tiles_number, tiles_size, _, channels = images.shape
+                images = images.view(batch_size * tiles_number, tiles_size, tiles_size, channels)
+                labels = labels.view(batch_size * tiles_number, tiles_size, tiles_size)
 
                 # Preprocess images
                 images = images.permute(0, 3, 1, 2).float() / 255.0

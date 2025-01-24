@@ -71,7 +71,7 @@ def unet_check(image):
     if h % 32 != 0 or w % 32 != 0:
         return False
     return True
-def create_tiles_with_labels(image, mask, tile_size, overlap):
+def create_tiles_with_labels(image, mask, tile_size, overlap=0):
     H, W = image.shape[:2]
     stride = int(tile_size * (1 - overlap))
     image_tiles, mask_tiles = [], []
@@ -87,8 +87,8 @@ def create_tiles_with_labels(image, mask, tile_size, overlap):
 
             image_tile = image[i:i_max, j:j_max]
             mask_tile = mask[i:i_max, j:j_max]
-            # if mask_tile.sum() == 0 or not unet_check(image_tile):
-            #     continue # Skip images with no ring
+            if mask_tile.sum() == 0:
+                 continue # Skip images with no ring
 
             if image_tile.ndim == 2:
                 image_tile = cv2.cvtColor(image_tile, cv2.COLOR_GRAY2BGR)
@@ -298,9 +298,12 @@ class OverlapTileDataset(Dataset):
 
         if tile_size > 0:
             for image, mask in zip(images, masks):
-                tiles, labels = create_tiles_with_labels(image, mask, tile_size, overlap)
-                l_images.extend(tiles)
-                l_labels.extend(labels)
+                tiles, labels = create_tiles_with_labels(image[0], mask[0], tile_size, overlap)
+                assert tiles.shape[0] == labels.shape[0]
+                #l_images.extend(tiles)
+                #l_labels.extend(labels)
+                l_images.append(tiles)
+                l_labels.append(labels)
                 # write_image(self.tiles_images_dir / f"0.png", tiles[0])
                 # write_image(self.tiles_masks_dir / f"0.png", (labels[0] * 255).astype(np.uint8))
 
@@ -329,16 +332,18 @@ class OverlapTileDataset(Dataset):
             debug_dir.mkdir(parents=True, exist_ok=True)
 
         counter = 0
-        for t, l in zip(l_images, l_labels):
-            write_image(self.tiles_images_dir / f"{counter}.png", t)
-            write_image(self.tiles_masks_dir / f"{counter}.png", (l * 255).astype(np.uint))
+        for tt, ll in zip(l_images, l_labels):
+            for idx, pack in enumerate(zip(tt, ll)):
+                t, l = pack
+                write_image(self.tiles_images_dir / f"{counter}_{idx}.png", t)
+                write_image(self.tiles_masks_dir / f"{counter}_{idx}.png", (l * 255).astype(np.uint))
 
-            if debug:
-                #overlay the label (l) over the tile (t)
-                overlay = np.zeros_like(t)
-                overlay[:,:,0] = l*255
-                overlay = overlay_images(t, overlay, alpha=0.5, beta=0.5, gamma=0)
-                write_image(debug_dir / f"{counter}.png", overlay)
+                if debug:
+                    #overlay the label (l) over the tile (t)
+                    overlay = np.zeros_like(t)
+                    overlay[:,:,0] = l*255
+                    overlay = overlay_images(t, overlay, alpha=0.5, beta=0.5, gamma=0)
+                    write_image(debug_dir / f"{counter}_{idx}.png", overlay)
 
             counter += 1
         return l_images, l_labels
@@ -400,8 +405,8 @@ class OverlapTileDataset(Dataset):
 
             #TODO: hay un bug menor donde la mascara se desconecta por un pixel.
             mask = np.where(mask > 0, 1, 0)
-            l_mask.append(mask)
-            l_images.append(image)
+            l_mask.append([mask])
+            l_images.append([image])
 
 
         return l_images, l_mask
