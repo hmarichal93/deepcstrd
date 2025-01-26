@@ -92,7 +92,7 @@ class Logger:
 
     def on_training_epoch_end(self, epoch, epoch_loss, number_of_epochs):
         self.epoch_message+= f"Epoch {epoch}/{number_of_epochs} | Train Loss: {epoch_loss:.4f} | "
-        self.writer.add_scalar("TrainLoss/Epoch", epoch_loss, epoch)
+        self.writer.add_scalar("Train Loss/Epoch", epoch_loss, epoch)
 
     def on_validation_epoch_end(self, epoch, epoch_loss, lr ):
         self.epoch_message+= f"Val Loss: {epoch_loss:.4f} | lr: {lr:.6f}"
