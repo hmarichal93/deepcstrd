@@ -465,7 +465,21 @@ def split_dataset(dataset_root:Path, val_size=0.2, test_size=0.2):
 
 
     return
+def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation):
+    train_dataset_dir = dataset_root / "train"
+    val_dataset_dir = dataset_root / "val"
+    test_dataset_dir = dataset_root / "test"
+    if not train_dataset_dir.exists() or not val_dataset_dir.exists() or not test_dataset_dir.exists():
+        split_dataset(dataset_root, val_size=0.2, test_size=0.2)
 
+    dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True,
+                                       augmentation=augmentation)
+    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+
+    dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True)
+    dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
+
+    return dataloader_train, dataloader_val
 from typing import List
 import os
 def generate_dataset_folder(folder_name:Path, dataset_root:Path, samples_list:List[str]):
