@@ -45,7 +45,7 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
 
     logs_dir = Path(logs_dir)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_tile_{int(tile_size)}_batch_{batch_size}_step_{step_size}"
+    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_step_{step_size}"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug)
     # Create the datasets for train, validation and test
@@ -88,9 +88,10 @@ def train( dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
         raise ValueError("Invalid model type")
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.AdamW(model.parameters(), lr=lr)
     # Define the learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+    #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, number_of_epochs, eta_min=lr / 100)
 
     # Training loop
     # Initialize TensorBoard writer
@@ -237,6 +238,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=4, help='Batch size')
     parser.add_argument('--tile_size', type=int, default=512, help='Tile size')
     parser.add_argument('--step_size', type=int, default=20, help='Step size for the learning rate scheduler')
+    parser.add_argument('--number_of_epochs', type=int, default=40, help='Number of epochs')
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
@@ -245,5 +247,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
-          model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size, step_size=args.step_size)
+          model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size, step_size=args.step_size,
+          number_of_epochs=args.number_of_epochs)
 
