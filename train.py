@@ -15,9 +15,9 @@ from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 
 
-def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug):
-    if Path(logs_dir).exists():
-        os.system(f"rm -r {logs_dir}")
+def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type, debug):
+    # if Path(logs_dir).exists():
+    #     os.system(f"rm -r {logs_dir}")
 
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
 
@@ -28,10 +28,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"batch_size: {batch_size}\n")
         f.write(f"lr: {lr}\n")
         f.write(f"number_of_epochs: {number_of_epochs}\n")
-        f.write(f"tiles: {tiles}\n")
         f.write(f"logs_dir: {logs_dir}\n")
-        f.write(f"step_size: {step_size}\n")
-        f.write(f"gamma: {gamma}\n")
         f.write(f"loss: {loss}\n")
         f.write(f"augmentation: {augmentation}\n")
         f.write(f"model_type: {model_type}\n")
@@ -157,24 +154,32 @@ def load_model(model_type, model_dir):
 
 def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
                     tile_size=512, overlap=0.1, batch_size=4,
-                    lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
+                    lr=0.001, number_of_epochs=100,
                     loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET, debug=False,
-                    min_running_loss = float("inf")):
-    logs_dir = Path(logs_dir)
+                    min_running_loss = float("inf"), logs_dir="runs/unet_experiment"):
+    import time
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    logs_dir = Path(logs_dir) / timestamp
+    logs_dir.mkdir(parents=True, exist_ok=True)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_step_{step_size}"
+    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}"
+    if augmentation:
+        logs_name += "_augmentation"
     logs_dir = str(logs_dir / logs_name)
-    save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug)
+    save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type, debug)
     return logs_dir, min_running_loss, 0
 
 
 
 
-def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_epochs, model_type, **task_kwargs):
+def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_epochs, model_type, augmentation,
+             **task_kwargs):
 
-    logs_dir, min_running_loss, best_epoch = initializations(**task_kwargs)
+    logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
+                                                             number_of_epochs, loss, augmentation, model_type,
+                                                             **task_kwargs)
 
-    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size)
+    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     model, device = load_model(model_type, logs_dir)
@@ -232,6 +237,6 @@ if __name__ == "__main__":
 
     training(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
              model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size,
-             step_size=args.step_size, number_of_epochs=args.number_of_epochs, overlap=args.overlap, lr=args.lr,
+            number_of_epochs=args.number_of_epochs, overlap=args.overlap, lr=args.lr,
              loss=args.loss)
 

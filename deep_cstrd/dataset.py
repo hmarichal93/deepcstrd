@@ -208,8 +208,7 @@ class OverlapTileDataset(Dataset):
 
         self.images, self.labels = self.load_data(tile_size, overlap, augmentation, debug)
 
-    def augment_data(self, images, masks, percentage, horizontal_flip=True, vertical_flip=True, occlusions=True,
-                     elastic_deformation=True, rotation=True):
+    def augment_data(self, images, masks, percentage):
         """
         Augment data. Add rotation 45, 90, 135, 180.
         Add Flip
@@ -227,24 +226,37 @@ class OverlapTileDataset(Dataset):
             img_pil = Image.fromarray(img)  # Convert to PIL for transformations
             mask_pil = Image.fromarray(mask.astype(float) * 255)  # Scale mask to 0-255 for transformations
 
-            # Apply augmentations (rotate, flip, and occlusions)
-            aug_img, aug_mask = self.apply_augmentations(img_pil, mask_pil, vertical_flip, horizontal_flip, occlusions,
-                                                         elastic_deformation, rotation)
+            # Apply augmentations rotate
+            aug_img, aug_mask = self.apply_augmentations(img_pil, mask_pil, rotation=True)
 
             # Convert back to NumPy arrays
             augmented_images.append(np.array(aug_img))
             augmented_masks.append((np.array(aug_mask) > 127).astype(np.uint8))  # Threshold mask back to binary
 
+            # Apply occlusions
+            img_pil = Image.fromarray(img)  # Convert to PIL for transformations
+            mask_pil = Image.fromarray(mask.astype(float) * 255)  # Scale mask to 0-255 for transformations
+            aug_img, aug_mask = self.apply_augmentations(img_pil, mask_pil, occlusions=True)
+            augmented_images.append(np.array(aug_img))
+            augmented_masks.append((np.array(aug_mask) > 127).astype(np.uint8))
+
+            # Apply elastic deformation
+            img_pil = Image.fromarray(img)  # Convert to PIL for transformations
+            mask_pil = Image.fromarray(mask.astype(float) * 255)  # Scale mask to 0-255 for transformations
+            aug_img, aug_mask = self.apply_augmentations(img_pil, mask_pil, elastic=True)
+            augmented_images.append(aug_img)
+            augmented_masks.append((aug_mask > 127).astype(np.uint8))
+
         return augmented_images, augmented_masks
 
-    def apply_augmentations(self, image, mask, vertical_flip=True, horizontal_flip=True, occlusions=True, elastic=True,
-                            rotation=True):
+    def apply_augmentations(self, image, mask, vertical_flip=False, horizontal_flip=False, occlusions=False, elastic=False,
+                            rotation=False):
         """
         Apply specific augmentations to an image and its mask.
         """
         # Random rotations
         if rotation:
-            rotations = [0, 45, 90, 135, 180, 225, 270, 315]
+            rotations = [45, 90, 135, 180, 225, 270, 315]
             angle = random.choice(rotations)
             image = image.rotate(angle)
             mask = mask.rotate(angle)
@@ -262,10 +274,9 @@ class OverlapTileDataset(Dataset):
         # Add random occlusions
         if occlusions:
             image = self.add_occlusions(image)
-            mask = self.add_occlusions(mask, mask_occlusion=True)
 
         if elastic:
-            image, mask = elastic_deformation(image, mask, alpha=50, sigma=5)
+            image, mask = elastic_deformation(image, mask, alpha=20, sigma=3)
 
         return image, mask
 
@@ -310,18 +321,10 @@ class OverlapTileDataset(Dataset):
             l_labels = masks
 
         if augmentation:
-            # images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, elastic_deformation=False)
-            # l_images.extend(images_aug)
-            # l_labels.extend(masks_aug)
-            #
-            # images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, horizontal_flip=False,
-            #                                           vertical_flip=False,  elastic_deformation=False)
-            # l_images.extend(images_aug)
-            # l_labels.extend(masks_aug)
 
-            images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage, horizontal_flip=False,
-                                                      vertical_flip=False,  elastic_deformation=True, occlusions=False,
-                                                      rotation=False)
+            images_aug, masks_aug = self.augment_data(l_images, l_labels, self.augment_percentage)
+
+
             l_images.extend(images_aug)
             l_labels.extend(masks_aug)
 
@@ -466,7 +469,7 @@ def split_dataset(dataset_root:Path, val_size=0.2, test_size=0.2):
 
 
     return
-def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False):
+def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False, num_workers=4):
     train_dataset_dir = dataset_root / "train"
     val_dataset_dir = dataset_root / "val"
     test_dataset_dir = dataset_root / "test"
@@ -475,10 +478,10 @@ def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = F
 
     dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True,
                                        augmentation=augmentation)
-    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+    dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True)
-    dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
+    dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     return dataloader_train, dataloader_val
 
