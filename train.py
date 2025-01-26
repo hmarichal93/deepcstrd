@@ -11,7 +11,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models.detection.mask_rcnn
 
-from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 
@@ -156,34 +155,30 @@ def load_model(model_type, model_dir):
     return model, device
 
 
-def set_output_directory(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
-          tile_size=512, overlap=0.1, batch_size=4,
-          lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
-          loss = Loss.dice , augmentation = False, model_type=segmentation_model.UNET,debug=False):
+def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
+                    tile_size=512, overlap=0.1, batch_size=4,
+                    lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
+                    loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET, debug=False,
+                    min_running_loss = float("inf")):
     logs_dir = Path(logs_dir)
     dataset_name = Path(dataset_root).name
     logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_step_{step_size}"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, step_size, gamma, loss, augmentation, model_type, debug)
-    return logs_dir
+    return logs_dir, min_running_loss, 0
 
 
 
 
-def training(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
-             tile_size=512, overlap=0.1, batch_size=4,
-             lr=0.001, number_of_epochs=100, tiles = True, logs_dir="runs/unet_experiment", step_size=20, gamma=0.5,
-             loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET, debug=False,
-             min_running_loss = 1000000, best_epoch = 0):
+def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_epochs, model_type, **task_kwargs):
 
-    logs_dir = set_output_directory(dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, tiles, logs_dir,
-                                    step_size, gamma, loss, augmentation, model_type, debug)
+    logs_dir, min_running_loss, best_epoch = initializations(**task_kwargs)
 
-    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation)
+    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     model, device = load_model(model_type, logs_dir)
-    optimizer, scheduler = configure_optimizer(model, lr, number_of_epochs, step_size, gamma)
+    optimizer, scheduler = configure_optimizer(model, lr, number_of_epochs)
     logger = Logger(logs_dir)
 
     for epoch in range(number_of_epochs):
@@ -224,6 +219,10 @@ if __name__ == "__main__":
     parser.add_argument('--tile_size', type=int, default=512, help='Tile size')
     parser.add_argument('--step_size', type=int, default=20, help='Step size for the learning rate scheduler')
     parser.add_argument('--number_of_epochs', type=int, default=40, help='Number of epochs')
+    parser.add_argument('--overlap', type=float, default=0.1, help='Overlap between tiles')
+    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+    parser.add_argument('--loss', type=int, default=0, help='Loss function. 0 dice loss, 1 BCE loss')
+
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
@@ -232,6 +231,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     training(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
-             model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size, step_size=args.step_size,
-             number_of_epochs=args.number_of_epochs)
+             model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size,
+             step_size=args.step_size, number_of_epochs=args.number_of_epochs, overlap=args.overlap, lr=args.lr,
+             loss=args.loss)
 
