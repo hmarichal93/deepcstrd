@@ -10,7 +10,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 import scipy.ndimage
-
+from typing import List
+import os
 
 def elastic_deformation(image, mask=None, alpha=15, sigma=3, random_state=None):
     """
@@ -465,7 +466,7 @@ def split_dataset(dataset_root:Path, val_size=0.2, test_size=0.2):
 
 
     return
-def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation):
+def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False):
     train_dataset_dir = dataset_root / "train"
     val_dataset_dir = dataset_root / "val"
     test_dataset_dir = dataset_root / "test"
@@ -480,8 +481,7 @@ def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation):
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
 
     return dataloader_train, dataloader_val
-from typing import List
-import os
+
 def generate_dataset_folder(folder_name:Path, dataset_root:Path, samples_list:List[str]):
     """
     Generate a dataset folder with the samples in samples_list
