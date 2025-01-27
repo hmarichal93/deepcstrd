@@ -119,19 +119,19 @@ class Logger:
         data = data.reshape(figure.canvas.get_width_height()[::-1] + (3,))
         return data
 
-    def save_image_batch(self, dataloader_val, model, logs_dir, epoch, criterion, device):
+    def save_image_batch(self, dataloader_val, model, logs_dir, epoch, criterion, device, title):
         import numpy as np
         self.batch_idx = np.random.randint(0, len(dataloader_val)) if self.batch_idx is None else self.batch_idx
 
         batch = list(dataloader_val)[self.batch_idx]
         predictions = forward_step(model, criterion, device, batch, debug=True)
-        fig = save_batch_with_labels_as_subplots(batch, predictions,
+        l_fig = save_batch_with_labels_as_subplots(batch, predictions, title,
                                            output_path=None)
-        # Convert the figure to a NumPy array
-        image = self.plot_to_image(fig)
+        for idx in range(len(l_fig)):
+            fig = l_fig[idx]
+            image = self.plot_to_image(fig)
+            self.writer.add_image(f"val_{self.batch_idx}_{idx}", image, epoch, dataformats='HWC')
 
-        # Log the image to TensorBoard
-        self.writer.add_image(f"val_{self.batch_idx}", image, epoch, dataformats='HWC')
         return
 
 
@@ -238,7 +238,8 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
             torch.save(model.state_dict(), f"{logs_dir}/best_model.pth")
             best_epoch = epoch
             if task_kwargs.get("debug", False):
-                logger.save_image_batch(dataloader_val, model, logs_dir, epoch, criterion, device)
+                logger.save_image_batch(dataloader_val, model, logs_dir, epoch, criterion, device,
+                                        f"{min_running_loss:.4f}")
 
 
 
