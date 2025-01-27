@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import cv2
 
-def save_batch_with_labels_as_subplots(images, labels, predictions, output_path="batch_predictions_with_labels.png",
+def save_batch_with_labels_as_subplots(batch,  predictions, output_path="batch_predictions_with_labels.png",
                                        threshold=0.5, batch_size=2):
     """
     Save a batch of images, labels, and predictions as a single subplot.
@@ -17,16 +17,18 @@ def save_batch_with_labels_as_subplots(images, labels, predictions, output_path=
     # Ensure predictions are probabilities and convert to binary masks
     probabilities = torch.sigmoid(predictions)  # Convert logits to probabilities
     binary_masks = probabilities > threshold    # Apply threshold
+    images, labels = batch
 
-
-    fig, axes = plt.subplots(batch_size, 3, figsize=(15, 5 * batch_size))
     images_size = images.size(0)
+    fig, axes = plt.subplots(images_size, 3, figsize=(15, 5 * batch_size))
+    if images_size == 1:
+        return
     for i in range(images_size):
         # Convert image, label, and mask to NumPy
-        image_np = images[i].cpu().numpy().transpose(1, 2, 0)  # Convert to HWC
+        image_np = images[i].cpu().numpy()#.transpose(1, 2, 0)  # Convert to HWC
         image_np = (image_np * 255).astype(np.uint8)           # Rescale to [0, 255]
         #convert to RGB
-        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        #image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
 
         label_np = labels[i].cpu().numpy().squeeze()           # Squeeze channel dimension
         label_np = (label_np * 255).astype(np.uint8)           # Rescale to [0, 255]
@@ -52,5 +54,7 @@ def save_batch_with_labels_as_subplots(images, labels, predictions, output_path=
 
     # Adjust layout and save
     plt.tight_layout()
-    plt.savefig(output_path, bbox_inches="tight")
+    if output_path is not None:
+        plt.savefig(output_path, bbox_inches="tight")
     plt.close()
+    return fig
