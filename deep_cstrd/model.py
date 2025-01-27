@@ -29,11 +29,12 @@ class RingSegmentationModel:
         self.output_dir = output_dir
 
 
-    def load_model(self, weights_path):
+    def load_model(self, weights_path, encoder='resnet18'):
+
         # Load your model here
         if self.model_type == segmentation_model.UNET:
             model = smp.Unet(
-                encoder_name="resnet34",
+                encoder_name=encoder,
                 encoder_weights=None,
                 in_channels=3,
                 classes=1
