@@ -15,7 +15,8 @@ from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 
 
-def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type, debug):
+def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
+                encoder, debug):
     # if Path(logs_dir).exists():
     #     os.system(f"rm -r {logs_dir}")
 
@@ -32,6 +33,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"loss: {loss}\n")
         f.write(f"augmentation: {augmentation}\n")
         f.write(f"model_type: {model_type}\n")
+        f.write(f"encoder: {encoder}\n")
         f.write(f"debug: {debug}\n")
 
 def configure_optimizer(model, lr, number_of_epochs, step_size = None, gamma = None):
@@ -42,7 +44,7 @@ def configure_optimizer(model, lr, number_of_epochs, step_size = None, gamma = N
     return optimizer, scheduler
 
 
-def forward_step(model, criterion, device, batch):
+def forward_step(model, criterion, device, batch, debug=False):
     images, labels = batch
 
     # Preprocess images
@@ -55,9 +57,10 @@ def forward_step(model, criterion, device, batch):
 
     # Forward pass
     predictions = model(images)
-
     # Compute loss
     loss = criterion(predictions, labels)
+    if debug:
+        return predictions
     return loss
 
 def train_one_epoch(model, device, dataloader_train, optimizer, criterion, scheduler):
@@ -86,6 +89,8 @@ class Logger:
         self.writer = SummaryWriter(log_dir=logs_dir)
         self.epoch_message = ""
         self.epoch = 0
+        import numpy as np
+        self.batch_idx = 4# None
 
     def on_training_epoch_end(self, epoch, epoch_loss, number_of_epochs):
         self.epoch_message+= f"Epoch {epoch}/{number_of_epochs} | Train Loss: {epoch_loss:.4f} | "
@@ -105,6 +110,31 @@ class Logger:
     def on_batch_end(self, logs, batch_idx, total_batches):
         pass
 
+    def plot_to_image(self, figure):
+        """Converts a Matplotlib figure to a NumPy array."""
+        import numpy as np
+
+        figure.canvas.draw()
+        data = np.frombuffer(figure.canvas.tostring_rgb(), dtype=np.uint8)
+        data = data.reshape(figure.canvas.get_width_height()[::-1] + (3,))
+        return data
+
+    def save_image_batch(self, dataloader_val, model, logs_dir, epoch, criterion, device):
+        import numpy as np
+        self.batch_idx = np.random.randint(0, len(dataloader_val)) if self.batch_idx is None else self.batch_idx
+        batch = list(dataloader_val)[self.batch_idx]
+        predictions = forward_step(model, criterion, device, batch, debug=True)
+        fig = save_batch_with_labels_as_subplots(batch, predictions,
+                                           output_path=None)
+        # Convert the figure to a NumPy array
+        image = self.plot_to_image(fig)
+
+        # Log the image to TensorBoard
+        self.writer.add_image(f"val_{self.batch_idx}", image, epoch, dataformats='HWC')
+        return
+
+
+
 def eval_one_epoch(model, device, dataloader_val, criterion):
     model.eval()
     with torch.no_grad():
@@ -116,22 +146,22 @@ def eval_one_epoch(model, device, dataloader_val, criterion):
 
     return running_loss / len(dataloader_val)
 
-def load_model(model_type, model_dir):
+def load_model(model_type, model_dir, encoder="resnet34", channels=3):
     # Define the model
     if model_type == segmentation_model.UNET:
         print("UNET")
         model = smp.Unet(
-            encoder_name="resnet34",  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
+            encoder_name=encoder,  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
             encoder_weights="imagenet",  # Use pretrained weights on ImageNet
-            in_channels=3,  # Number of input channels (e.g., 3 for RGB)
+            in_channels=channels,  # Number of input channels (e.g., 3 for RGB)
             classes=1  # Number of output classes (e.g., 1 for binary segmentation)
         )
     elif model_type == segmentation_model.UNET_PLUS_PLUS:
         print("UNET++")
         model = smp.UnetPlusPlus(
-            encoder_name="resnet34",  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
+            encoder_name=encoder,  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
             encoder_weights="imagenet",  # Use pretrained weights on ImageNet
-            in_channels=3,  # Number of input channels (e.g., 3 for RGB)
+            in_channels=channels,  # Number of input channels (e.g., 3 for RGB)
             classes=1  # Number of output classes (e.g., 1 for binary segmentation)
         )
     elif model_type == segmentation_model.MASK_RCNN:
@@ -155,34 +185,36 @@ def load_model(model_type, model_dir):
 def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pinus_v1"),
                     tile_size=512, overlap=0.1, batch_size=4,
                     lr=0.001, number_of_epochs=100,
-                    loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET, debug=False,
+                    loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET,
+                    encoder="resnet34", channels=3, thickness=3, debug=False,
                     min_running_loss = float("inf"), logs_dir="runs/unet_experiment"):
     import time
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     logs_dir = Path(logs_dir) / timestamp
     logs_dir.mkdir(parents=True, exist_ok=True)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}"
+    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}"
     if augmentation:
         logs_name += "_augmentation"
     logs_dir = str(logs_dir / logs_name)
-    save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type, debug)
+    save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
+                encoder, debug)
     return logs_dir, min_running_loss, 0
 
 
 
 
 def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_epochs, model_type, augmentation,
-             **task_kwargs):
+             encoder, channels, thickness, **task_kwargs):
 
     logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
                                                              number_of_epochs, loss, augmentation, model_type,
-                                                             **task_kwargs)
+                                                             encoder, channels, thickness, **task_kwargs)
 
-    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation)
+    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation, thickness= thickness)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
-    model, device = load_model(model_type, logs_dir)
+    model, device = load_model(model_type, logs_dir, encoder, channels)
     optimizer, scheduler = configure_optimizer(model, lr, number_of_epochs)
     logger = Logger(logs_dir)
 
@@ -198,11 +230,15 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
 
         logger.on_epoch_end(epoch)
 
-        save_model = epoch_train_loss < min_running_loss
+        save_model = epoch_val_loss < min_running_loss
         if save_model:
+            print(f"Saving model in epoch {epoch} with loss {epoch_val_loss}")
             min_running_loss = epoch_train_loss
             torch.save(model.state_dict(), f"{logs_dir}/best_model.pth")
             best_epoch = epoch
+            if task_kwargs.get("debug", False):
+                logger.save_image_batch(dataloader_val, model, logs_dir, epoch, criterion, device)
+
 
 
     #save model
@@ -227,16 +263,19 @@ if __name__ == "__main__":
     parser.add_argument('--overlap', type=float, default=0.1, help='Overlap between tiles')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--loss', type=int, default=0, help='Loss function. 0 dice loss, 1 BCE loss')
-
+    parser.add_argument('--encoder', type=str, default="resnet34", help='Encoder to use')
+    parser.add_argument('--boundary_thickness', type=int, default=3, help='Mask boundary thickness')
+    #parser.add_argument('--encoder', type=str, default="mobilenet_v2", help='Encoder to use')
+    parser.add_argument('--input_channels', type=int, default=3, help='Number of input channels')
     #load rest of parameter from config file
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
     parser.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
-    parser.add_argument("--debug", type=bool, default=False, help="Debug mode")
+    parser.add_argument("--debug", type=bool, default=True, help="Debug mode")
     args = parser.parse_args()
 
     training(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
              model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size,
             number_of_epochs=args.number_of_epochs, overlap=args.overlap, lr=args.lr,
-             loss=args.loss)
+            encoder= args.encoder, loss=args.loss, channels=args.input_channels, thickness=args.boundary_thickness)
 
