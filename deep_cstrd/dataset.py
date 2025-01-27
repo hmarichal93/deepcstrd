@@ -186,7 +186,9 @@ def padding_image(image:np.array, multiple: int =32, value: np.uint8 = 255) -> n
 class OverlapTileDataset(Dataset):
     def __init__(self, dataset_dir: Path, tile_size: int, overlap: float,augmentation: bool = False,
                  augment_percentage=20,
-                 debug: bool = True):
+                 debug: bool = True,
+                 thickness=3):
+        self.thickness = thickness
         self.images_dir = dataset_dir / "images/segmented"
         self.annotations_dir = dataset_dir / "annotations/labelme/images/"
         self.mask_dir = dataset_dir / "masks"
@@ -385,7 +387,7 @@ class OverlapTileDataset(Dataset):
             #convert to RGB
             if image.shape[2] == 4:
                 image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-            mask = self.annotation_to_mask(ann, image)
+            mask = self.annotation_to_mask(ann, image, boundaries_thickness=self.thickness)
 
             h,w = mask.shape
             if h % 32 != 0 or w % 32 != 0 or not (h==w):
@@ -410,7 +412,7 @@ class OverlapTileDataset(Dataset):
 
         return l_images, l_mask
 
-    def annotation_to_mask(self, annotation, img, boundaries_thickness = 1):
+    def annotation_to_mask(self, annotation, img, boundaries_thickness = 3):
         """
         Transform annotation to mask
         :param annotation: annotation path
@@ -469,7 +471,7 @@ def split_dataset(dataset_root:Path, val_size=0.2, test_size=0.2):
 
 
     return
-def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False, num_workers=4):
+def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False, num_workers=4, thickness=3):
     train_dataset_dir = dataset_root / "train"
     val_dataset_dir = dataset_root / "val"
     test_dataset_dir = dataset_root / "test"
@@ -477,10 +479,10 @@ def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = F
         split_dataset(dataset_root, val_size=0.2, test_size=0.2)
 
     dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True,
-                                       augmentation=augmentation)
+                                       augmentation=augmentation, thickness=thickness)
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
-    dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True)
+    dataset_val = OverlapTileDataset(Path(val_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True, thickness=thickness)
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     return dataloader_train, dataloader_val
