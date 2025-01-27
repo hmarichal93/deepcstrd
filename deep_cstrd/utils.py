@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import cv2
+from urudendro.image import write_image
 
 def save_batch_with_labels_as_subplots(batch,  predictions, output_path="batch_predictions_with_labels.png",
                                        threshold=0.5, batch_size=2):
@@ -25,11 +26,11 @@ def save_batch_with_labels_as_subplots(batch,  predictions, output_path="batch_p
         return
     for i in range(images_size):
         # Convert image, label, and mask to NumPy
-        image_np = images[i].cpu().numpy()#.transpose(1, 2, 0)  # Convert to HWC
-        image_np = (image_np * 255).astype(np.uint8)           # Rescale to [0, 255]
+        image_np = images[i].cpu().numpy().astype(np.uint8)#.transpose(1, 2, 0)  # Convert to HWC
+        #image_np = (image_np * 255).astype(np.uint8)           # Rescale to [0, 255]
         #convert to RGB
-        #image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        #write_image(f"image_{i}.png", image_np)
         label_np = labels[i].cpu().numpy().squeeze()           # Squeeze channel dimension
         label_np = (label_np * 255).astype(np.uint8)           # Rescale to [0, 255]
 

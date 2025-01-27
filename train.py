@@ -122,6 +122,7 @@ class Logger:
     def save_image_batch(self, dataloader_val, model, logs_dir, epoch, criterion, device):
         import numpy as np
         self.batch_idx = np.random.randint(0, len(dataloader_val)) if self.batch_idx is None else self.batch_idx
+
         batch = list(dataloader_val)[self.batch_idx]
         predictions = forward_step(model, criterion, device, batch, debug=True)
         fig = save_batch_with_labels_as_subplots(batch, predictions,
@@ -233,7 +234,7 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
         save_model = epoch_val_loss < min_running_loss
         if save_model:
             print(f"Saving model in epoch {epoch} with loss {epoch_val_loss}")
-            min_running_loss = epoch_train_loss
+            min_running_loss = epoch_val_loss
             torch.save(model.state_dict(), f"{logs_dir}/best_model.pth")
             best_epoch = epoch
             if task_kwargs.get("debug", False):
