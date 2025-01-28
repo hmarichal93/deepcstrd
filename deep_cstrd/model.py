@@ -59,10 +59,10 @@ class RingSegmentationModel:
         self.device = device
         return model
 
-    def forward(self, img, output_dir=None, tile_size=0):
+    def forward(self, img, output_dir=None):
         if output_dir:
             write_image(f"{output_dir}/img.png", img)
-        if tile_size>0:
+        if self.tile_size>0:
             image, _ = create_tiles_with_labels(img, img, tile_size=self.tile_size, overlap=self.overlap)
         else:
             image = np.array([img])
@@ -77,7 +77,7 @@ class RingSegmentationModel:
             pred = self.model(image)
             pred = torch.sigmoid(pred)  # Apply sigmoid to get probabilities
             pred = pred.squeeze().cpu().numpy()  # Convert to numpy array
-            if tile_size > 0:
+            if self.tile_size > 0:
                 pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
 
             if output_dir:
@@ -239,7 +239,7 @@ def deep_learning_edge_detector(img,
     if h % 32 != 0 or w % 32 != 0:
         img = padding_image(img, 32)
 
-    model = RingSegmentationModel(weights_path)
+    model = RingSegmentationModel(weights_path, tile_size=tile_size)
 
     if total_rotations < 1:
         total_rotations = 1
@@ -253,7 +253,7 @@ def deep_learning_edge_detector(img,
         output_dir_angle = None if not debug else output_dir_angle
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)
-        pred = model.forward(rot_image, output_dir=output_dir_angle, tile_size=tile_size)
+        pred = model.forward(rot_image, output_dir=output_dir_angle)
         pred = rotate_image(pred, (cx, cy), angle=-angle)
         pred_dict[angle] = pred
 

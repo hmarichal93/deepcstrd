@@ -212,7 +212,8 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
                                                              number_of_epochs, loss, augmentation, model_type,
                                                              encoder, channels, thickness, **task_kwargs)
 
-    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation, thickness= thickness)
+    dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
+                                                     thickness=thickness)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     model, device = load_model(model_type, logs_dir, encoder, channels)
