@@ -88,8 +88,8 @@ def create_tiles_with_labels(image, mask, tile_size, overlap):
 
             image_tile = image[i:i_max, j:j_max]
             mask_tile = mask[i:i_max, j:j_max]
-            # if mask_tile.sum() == 0 or not unet_check(image_tile):
-            #     continue # Skip images with no ring
+            if mask_tile.sum() == 0 : # or not unet_check(image_tile):
+                 continue # Skip images with no ring
 
             if image_tile.ndim == 2:
                 image_tile = cv2.cvtColor(image_tile, cv2.COLOR_GRAY2BGR)

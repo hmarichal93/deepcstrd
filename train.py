@@ -121,6 +121,7 @@ class Logger:
 
     def save_image_batch(self, dataloader_val, model, logs_dir, epoch, criterion, device, title):
         import numpy as np
+        np.random.seed(4321)
         self.batch_idx = np.random.randint(0, len(dataloader_val)) if self.batch_idx is None else self.batch_idx
 
         batch = list(dataloader_val)[self.batch_idx]

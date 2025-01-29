@@ -32,15 +32,15 @@ def save_batch_with_labels_as_subplots(batch,  predictions,title, output_path="b
 
         for i in range(4):
             # Convert image, label, and mask to NumPy
-            image_np = images[i].cpu().numpy().astype(np.uint8)#.transpose(1, 2, 0)  # Convert to HWC
+            image_np = images[idx_fig + i].cpu().numpy().astype(np.uint8)#.transpose(1, 2, 0)  # Convert to HWC
             #image_np = (image_np * 255).astype(np.uint8)           # Rescale to [0, 255]
             #convert to RGB
+            #write_image(f"image_{idx_fig}_{i}.png", image_np)
             image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-            #write_image(f"image_{i}.png", image_np)
-            label_np = labels[i].cpu().numpy().squeeze()           # Squeeze channel dimension
+            label_np = labels[idx_fig + i].cpu().numpy().squeeze()           # Squeeze channel dimension
             label_np = np.clip((label_np * 255),0,255).astype(np.uint8)           # Rescale to [0, 255]
 
-            mask_np = binary_masks[i].cpu().numpy().squeeze()      # Squeeze channel dimension
+            mask_np = binary_masks[idx_fig + i].cpu().numpy().squeeze()      # Squeeze channel dimension
 
             # Plot original image
             axes[i, 0].imshow(image_np)
