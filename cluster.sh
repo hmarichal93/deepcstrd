@@ -61,8 +61,8 @@ ls -l $NODE_DATASET_DIR
 # Run the program
 echo "Running the program"
 cd $ROOT_DIR
-python train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --logs_dir --batch_size 4 --tile_size 768 --encoder resnet18 --number_of_epochs 100 --boundary_thickness 3
-python train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --logs_dir --batch_size 4 --tile_size 0 --encoder resnet18 --number_of_epochs 100 --boundary_thickness 3
+python train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR --batch_size 2 --tile_size 1024 --encoder resnet18 --number_of_epochs 100 --boundary_thickness 3
+#python train.py --dataset_dir $NODE_DATASET_DIR  --logs_dir $NODE_LOGS_DIR  --batch_size 4 --tile_size 0 --encoder resnet18 --number_of_epochs 100 --boundary_thickness 3
 
 
 # -------------------------------------------------------
