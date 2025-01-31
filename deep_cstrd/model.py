@@ -63,7 +63,8 @@ class RingSegmentationModel:
         if output_dir:
             write_image(f"{output_dir}/img.png", img)
         if self.tile_size>0:
-            image, _ = create_tiles_with_labels(img, img, tile_size=self.tile_size, overlap=self.overlap)
+            image, _ = create_tiles_with_labels(img, img, tile_size=self.tile_size,
+                                                overlap=self.overlap, inference=True)
         else:
             image = np.array([img])
         image = torch.from_numpy(image)

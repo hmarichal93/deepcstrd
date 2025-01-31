@@ -72,7 +72,7 @@ def unet_check(image):
     if h % 32 != 0 or w % 32 != 0:
         return False
     return True
-def create_tiles_with_labels(image, mask, tile_size, overlap):
+def create_tiles_with_labels(image, mask, tile_size, overlap, inference=False):
     H, W = image.shape[:2]
     stride = int(tile_size * (1 - overlap))
     image_tiles, mask_tiles = [], []
@@ -88,7 +88,7 @@ def create_tiles_with_labels(image, mask, tile_size, overlap):
 
             image_tile = image[i:i_max, j:j_max]
             mask_tile = mask[i:i_max, j:j_max]
-            if mask_tile.sum() == 0 : # or not unet_check(image_tile):
+            if mask_tile.sum() == 0 and not inference: # or not unet_check(image_tile):
                  continue # Skip images with no ring
 
             if image_tile.ndim == 2:
@@ -185,7 +185,7 @@ def padding_image(image:np.array, multiple: int =32, value: np.uint8 = 255) -> n
 
 class OverlapTileDataset(Dataset):
     def __init__(self, dataset_dir: Path, tile_size: int, overlap: float,augmentation: bool = False,
-                 augment_percentage=20,
+                 augment_percentage=50,
                  debug: bool = True,
                  thickness=3):
         self.thickness = thickness
@@ -392,7 +392,7 @@ class OverlapTileDataset(Dataset):
             h,w = mask.shape
             if h % 32 != 0 or w % 32 != 0 or not (h==w):
                 #padd the mask to be divisible by 32. UNET requires this
-                mask = padding_image(mask)
+                mask = padding_image(mask, value=0)
                 image = padding_image(image)
                 h,w = mask.shape
 
