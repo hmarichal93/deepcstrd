@@ -243,10 +243,6 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
                 logger.save_image_batch(dataloader_val, model, logs_dir, epoch, criterion, device,
                                         f"{min_running_loss:.4f}")
 
-        early_stop = best_epoch + 10 < epoch
-        if early_stop:
-            print(f"Early stop in epoch {epoch} with loss {epoch_val_loss}")
-            break
 
 
 
