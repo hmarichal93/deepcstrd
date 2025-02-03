@@ -202,7 +202,7 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
     logs_dir = Path(logs_dir) / timestamp
     logs_dir.mkdir(parents=True, exist_ok=True)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}"
+    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}_loss_{loss}"
     if augmentation:
         logs_name += "_augmentation"
     logs_dir = str(logs_dir / logs_name)
