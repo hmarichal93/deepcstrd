@@ -115,6 +115,5 @@ def sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=False, debug_output_dir
         ch.visualize_selected_ch_and_chains_over_image_(
             l_ch_s, [], img=im_pre, filename=f'{debug_output_dir}/chains_with_no_duplication.png')
 
-    control_check_spyder_web_hypotesis(l_ch_s, l_nodes_s, debug_output_dir)
     # Line 5
     return l_ch_s, l_nodes_s
