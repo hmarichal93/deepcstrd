@@ -37,7 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("--nr", type=int, required=False,default=360)
     parser.add_argument("--hsize", type=int, required=False, default=0)
     parser.add_argument("--wsize", type=int, required=False, default=0)
-    parser.add_argument("--edge_th", type=int, required=False, default=180)
+    parser.add_argument("--edge_th", type=int, required=False, default=30)
     parser.add_argument("--th_high", type=int, required=False, default=20)
     parser.add_argument("--th_low", type=int, required=False, default=5)
     parser.add_argument("--min_chain_length", type=int, required=False, default=2)
