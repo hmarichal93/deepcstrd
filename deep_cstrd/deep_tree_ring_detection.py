@@ -13,7 +13,7 @@ from deep_cstrd.model import deep_learning_edge_detector
 
 
 def DeepTreeRingDetection(im_in, cy, cx, sigma, th_low, th_high, height, width, alpha, nr, mc, weights_path, total_rotations,
-                      debug= False, debug_image_input_path=None, debug_output_dir=None, tile_size=0):
+                      debug= False, debug_image_input_path=None, debug_output_dir=None, tile_size=0, prediction_map_threshold=0.2):
     """
     Method for delineating tree ring over pine cross sections images. Implements Algorithm 1 from the paper.
     @param im_in: segmented input image. Background must be white (255,255,255).
@@ -47,7 +47,8 @@ def DeepTreeRingDetection(im_in, cy, cx, sigma, th_low, th_high, height, width, 
     # Line 2 Edge detector module.
     m_ch_e, gx, gy = deep_learning_edge_detector(im_pre,  weights_path=weights_path, output_dir=Path(debug_output_dir),
                                                   cy=cy, cx=cx, total_rotations=total_rotations,debug=debug,
-                                                 tile_size=tile_size)
+                                                 tile_size=tile_size,
+                                                 prediction_map_threshold = prediction_map_threshold)
     #conver im_pre to gray scale
     im_pre = cv2.cvtColor(im_pre, cv2.COLOR_BGR2GRAY)
     im_in = cv2.cvtColor(im_in, cv2.COLOR_RGB2BGR)
