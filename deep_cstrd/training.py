@@ -213,12 +213,27 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
 
 
 
-def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_epochs, model_type, augmentation,
-             encoder, channels, thickness, **task_kwargs):
+def training(args):
+    # Parse arguments
+    dataset_root = Path(args.dataset_dir)
+    logs_dir = args.logs_dir
+    batch_size = args.batch_size
+    tile_size = args.tile_size
+    number_of_epochs = args.number_of_epochs
+    overlap = args.overlap
+    lr = args.lr
+    loss = args.loss
+    encoder = args.encoder
+    channels = args.input_channels
+    thickness = args.boundary_thickness
+    augmentation = args.augmentation
+    model_type = args.model_type
+    debug = args.debug
 
+    # Initialize
     logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
                                                              number_of_epochs, loss, augmentation, model_type,
-                                                             encoder, channels, thickness, **task_kwargs)
+                                                             encoder, channels, thickness, debug, logs_dir=logs_dir)
 
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
                                                      thickness=thickness)
@@ -246,7 +261,7 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
             min_running_loss = epoch_val_loss
             torch.save(model.state_dict(), f"{logs_dir}/best_model.pth")
             best_epoch = epoch
-            if task_kwargs.get("debug", False):
+            if debug:
                 logger.save_image_batch(dataloader_val, model, logs_dir, epoch, criterion, device,
                                         f"{min_running_loss:.4f}")
 
