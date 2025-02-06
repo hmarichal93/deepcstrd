@@ -234,7 +234,7 @@ def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False, ):
 
 def deep_learning_edge_detector(img,
                                 weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
-                                output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0, th = 0.2):
+                                output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0, prediction_map_threshold = 0.2):
 
     h, w = img.shape[:2]
     if h % 32 != 0 or w % 32 != 0:
@@ -269,7 +269,7 @@ def deep_learning_edge_detector(img,
         draw_pred_mask(pred, img, output_dir, cx, cy)
 
     #binarize the mask
-    pred = (pred >= th).astype(np.uint8)  # Binarize the mask
+    pred = (pred >= prediction_map_threshold).astype(np.uint8)  # Binarize the mask
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:
