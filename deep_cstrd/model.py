@@ -12,7 +12,8 @@ from urudendro.drawing import Drawing, Color
 
 from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images, padding_image
 
-
+from deep_cstrd.sampling import sampling_edges
+from deep_cstrd.filter_edges import filter_edges
 class segmentation_model:
     UNET = 1
     UNET_PLUS_PLUS = 2
@@ -232,9 +233,10 @@ def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False, ):
     m_ch_e = model.compute_connected_components_by_contour(np.where(skeleton, 255, 0), output_dir, debug)
     return m_ch_e
 
-def deep_learning_edge_detector(img,
-                                weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
-                                output_dir=None, cy=None, cx=None, debug=False, total_rotations=4, tile_size=0):
+def deep_contour_detector(img,
+                          weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
+                          output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0,
+                          prediction_map_threshold=0.2, alpha=30, mc=2, nr=360):
 
     h, w = img.shape[:2]
     if h % 32 != 0 or w % 32 != 0:
@@ -250,7 +252,8 @@ def deep_learning_edge_detector(img,
     pred_dict = {}
     for angle in angle_range:
         output_dir_angle = Path(output_dir) / f"{angle}"
-        output_dir_angle.mkdir(parents=True, exist_ok=True)
+        if debug:
+            output_dir_angle.mkdir(parents=True, exist_ok=True)
         output_dir_angle = None if not debug else output_dir_angle
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)
@@ -269,15 +272,21 @@ def deep_learning_edge_detector(img,
         draw_pred_mask(pred, img, output_dir, cx, cy)
 
     #binarize the mask
-    th = 0.5
-    pred = (pred >= th).astype(np.uint8)  # Binarize the mask
+    pred = (pred >= prediction_map_threshold).astype(np.uint8)  # Binarize the mask
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:
         draw_normals(img, m_ch_e, gx, gy, output_dir)
 
+    im_pre = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    return m_ch_e, gy, gx
+    # Line 3 Edge filtering module. Algorithm 4 in the supplementary material.
+    l_ch_f = filter_edges(m_ch_e, cy, cx, gy, gx, alpha, im_pre)
+    # Line 4 Sampling edges. Algorithm 6 in the supplementary material.
+    l_ch_s, l_nodes_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug,
+                                       debug_output_dir=Path(output_dir))
+
+    return l_ch_s, l_nodes_s
 
 def draw_normals(img, m_ch_e, gx, gy, output_dir):
     debug_image = img.copy()
@@ -322,7 +331,7 @@ def test_forward(debug=False):
     image_path = "/data/maestria/resultados/deep_cstrd/pinus_v1/val/images/segmented/F02d.png"
     img = load_image(image_path)
     #convert to torch tensor
-    m_ch_e = deep_learning_edge_detector(img, weights_path)
+    m_ch_e = deep_contour_detector(img, weights_path)
 
     return m_ch_e
 

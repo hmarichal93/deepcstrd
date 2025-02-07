@@ -25,4 +25,4 @@ def preprocessing(im_in, height_output=None, width_output=None, cy=None, cx=None
     else:
         im_r, cy_output, cx_output = resize( im_in, height_output, width_output, cy, cx)
 
-    return im_r, cy_output, cx_output
+    return im_r, int(cy_output), int(cx_output)

@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 from deep_cstrd.dataset import load_datasets
 from deep_cstrd.utils import save_batch_with_labels_as_subplots
 from deep_cstrd.losses import DiceLoss, Loss
@@ -21,8 +23,8 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
     #     os.system(f"rm -r {logs_dir}")
 
     Path(logs_dir).mkdir(parents=True, exist_ok=True)
-
-    with open(f"{logs_dir}/config.txt", "w") as f:
+    config_path = Path(logs_dir) / "config.txt"
+    with open(str(config_path), "w") as f:
         f.write(f"dataset_root: {dataset_root}\n")
         f.write(f"tile_size: {tile_size}\n")
         f.write(f"overlap: {overlap}\n")
@@ -35,6 +37,11 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"model_type: {model_type}\n")
         f.write(f"encoder: {encoder}\n")
         f.write(f"debug: {debug}\n")
+
+    #load config file txt with numpy
+    config = np.loadtxt(config_path, delimiter=":", dtype=str)
+    print(config)
+
 
 def configure_optimizer(model, lr, number_of_epochs, step_size = None, gamma = None):
     optimizer = optim.AdamW(model.parameters(), lr=lr)
@@ -195,7 +202,7 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
     logs_dir = Path(logs_dir) / timestamp
     logs_dir.mkdir(parents=True, exist_ok=True)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}"
+    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}_loss_{loss}"
     if augmentation:
         logs_name += "_augmentation"
     logs_dir = str(logs_dir / logs_name)
@@ -206,12 +213,27 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
 
 
 
-def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_epochs, model_type, augmentation,
-             encoder, channels, thickness, **task_kwargs):
+def training(args):
+    # Parse arguments
+    dataset_root = Path(args.dataset_dir)
+    logs_dir = args.logs_dir
+    batch_size = args.batch_size
+    tile_size = args.tile_size
+    number_of_epochs = args.number_of_epochs
+    overlap = args.overlap
+    lr = args.lr
+    loss = args.loss
+    encoder = args.encoder
+    channels = args.input_channels
+    thickness = args.boundary_thickness
+    augmentation = args.augmentation
+    model_type = args.model_type
+    debug = args.debug
 
+    # Initialize
     logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
                                                              number_of_epochs, loss, augmentation, model_type,
-                                                             encoder, channels, thickness, **task_kwargs)
+                                                             encoder, channels, thickness, debug, logs_dir=logs_dir)
 
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
                                                      thickness=thickness)
@@ -239,7 +261,7 @@ def training(dataset_root, tile_size, overlap, batch_size, lr, loss, number_of_e
             min_running_loss = epoch_val_loss
             torch.save(model.state_dict(), f"{logs_dir}/best_model.pth")
             best_epoch = epoch
-            if task_kwargs.get("debug", False):
+            if debug:
                 logger.save_image_batch(dataloader_val, model, logs_dir, epoch, criterion, device,
                                         f"{min_running_loss:.4f}")
 
