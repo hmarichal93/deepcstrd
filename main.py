@@ -1,6 +1,7 @@
 import argparse, sys
 
 from urudendro.image import load_image
+from urudendro.io import write_json
 from pathlib import Path
 
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
@@ -9,6 +10,41 @@ from deep_cstrd.metrics_evaluation import evaluate
 
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import save_config, saving_results
 
+def save_config(args, root_path, output_dir):
+    config = {}
+
+    config['result_path'] = output_dir
+
+    if args.nr:
+        config['nr'] = args.nr
+
+    if args.hsize and args.wsize:
+        if args.hsize>0 and args.wsize>0:
+            config['resize'] = [args.hsize, args.wsize]
+
+    if args.min_chain_length:
+        config["min_chain_length"] = args.min_chain_length
+
+    if args.edge_th:
+        config["edge_th"] = args.edge_th
+
+    if args.sigma:
+        config['sigma'] = args.sigma
+
+    if args.th_high:
+        config['th_high'] = args.th_high
+
+    if args.th_low:
+        config['th_low'] = args.th_low
+
+    if args.debug:
+        config['debug'] = True
+
+    config['devernay_path'] = str(Path(root_path) / "externas/devernay_1.0")
+
+    write_json(config, Path(root_path) / 'config/general.json')
+
+    return 0
 
 def inference(args):
     save_config(args, args.root, args.output_dir)

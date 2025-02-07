@@ -43,7 +43,7 @@ else:
 
 # Upload image
 uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "png", "jpeg"])
-if uploaded_file:
+if uploaded_file and st.button("Run"):
     image = Image.open(uploaded_file)
     original_size = image.size  # Save original size
     image_orig = np.array(image)
