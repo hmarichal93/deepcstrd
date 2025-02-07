@@ -1,16 +1,18 @@
 # DeepCS-TRD
 DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images of Pinus taeda and Gleditsia triacanthos.
-
 ***
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=894688718&ref=develop&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsEast)
+
+Run app 
+```bash
+streamlit run app.py
+```
+***
+
 <img src="assets/deepCS-TRD_pinus2.png" alt="Example input image and detected tree rings"/>
 
-<img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
-
-<img src="assets/deepCS-TRD_gleditsia.png" alt="Example input image and detected tree rings"/>
-
 ***
-
-## Setup:
+## Local Setup:
 ### Set conda environment 
 ```bash
 conda env create -f environment.yml
@@ -39,4 +41,15 @@ Results should appear in the output/F02c folder
 python main.py inference
 ```
 
-Or use GitHub Codespaces: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=dev&repo=574937325&machine=standardLinux32gb&location=WestEurope)
+
+
+## More Examples 
+
+***
+
+<img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
+
+<img src="assets/deepCS-TRD_gleditsia.png" alt="Example input image and detected tree rings"/>
+
+***
+
