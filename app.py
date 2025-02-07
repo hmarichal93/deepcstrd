@@ -19,7 +19,7 @@ run = False
 st.set_page_config(layout="wide")
 output_dir = Path("./output/app")
 # Application configuration
-st.title("Wood Disk Pith Marker")
+st.title("DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector")
 st.write("Upload an image and click to mark the pith of the wood disk.")
 
 #add check box to displya parameters
@@ -42,8 +42,8 @@ else:
     wsize = 1504
 
 # Upload image
-uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "png", "jpeg"])
-if uploaded_file and st.button("Run"):
+uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"])
+if uploaded_file:
     image = Image.open(uploaded_file)
     original_size = image.size  # Save original size
     image_orig = np.array(image)
@@ -64,32 +64,31 @@ if uploaded_file and st.button("Run"):
         cy = int(y / scale)
         st.session_state["coords"] = (cx, cy)
         st.write(f"Last selected position in original scale: X = {cx}, Y = {cy}")
+        if st.button("Run"):
 
+            os.system(f"rm -rf {output_dir}")
+            output_dir.mkdir(exist_ok=True, parents=True)
+            input_path = str( output_dir / "input.png")
 
-        os.system(f"rm -rf {output_dir}")
-        output_dir.mkdir(exist_ok=True, parents=True)
-        input_path = str( output_dir / "input.png")
+            cv2.imwrite(str(input_path), cv2.cvtColor(image_orig, cv2.COLOR_RGB2BGR))
+            img_in  = load_image(input_path)
+            sigma = 3
+            th_low = 5
+            th_high = 20
+            nr = 360
+            min_chain_length = 2
+            weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/runs/20250130-221624/pinus_v1_1504_epochs_100_tile_256_batch_8_lr_0.001_resnet18_channels_3_thickness_3_augmentation/best_model.pth"
+            res = DeepTreeRingDetection(img_in, int(cy), int(cx), sigma, th_low, th_high, hsize,
+                                        wsize,
+                                        alpha, nr, min_chain_length, weights_path,
+                                        total_rotations,
+                                        False, input_path, output_dir, tile_size,
+                                        prediction_map_threshold)
 
-        cv2.imwrite(str(input_path), cv2.cvtColor(image_orig, cv2.COLOR_RGB2BGR))
-        img_in  = load_image(input_path)
-        sigma = 3
-        th_low = 5
-        th_high = 20
-        nr = 360
-        min_chain_length = 2
-        weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/runs/20250130-221624/pinus_v1_1504_epochs_100_tile_256_batch_8_lr_0.001_resnet18_channels_3_thickness_3_augmentation/best_model.pth"
-        res = DeepTreeRingDetection(img_in, int(cy), int(cx), sigma, th_low, th_high, hsize,
-                                    wsize,
-                                    alpha, nr, min_chain_length, weights_path,
-                                    total_rotations,
-                                    False, input_path, output_dir, tile_size,
-                                    prediction_map_threshold)
+            saving_results(res, output_dir, True)
 
-        saving_results(res, output_dir, True)
-        run = False
 
 uploaded_files = ["chains.png", "connect.png","postprocessing.png", "output.png"]
-
 if "current_image_index" not in st.session_state:
     st.session_state["current_image_index"] = 0
 
