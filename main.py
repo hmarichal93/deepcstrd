@@ -73,7 +73,7 @@ if __name__ == "__main__":
     parser_inference = subparsers.add_parser('inference', help='Train a network')
     parser_inference.add_argument("--input", type=str, required=False,default="input/F02c.png")
     parser_inference.add_argument("--weights_path", type=str, required=False,
-                        default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/runs/20250130-221624/pinus_v1_1504_epochs_100_tile_256_batch_8_lr_0.001_resnet18_channels_3_thickness_3_augmentation/best_model.pth")
+                        default="./models/deep_cstrd/256_pinus_v1_1504.pth")
     parser_inference.add_argument("--cy", type=int, required=False, default=1264)
     parser_inference.add_argument("--cx", type=int, required=False, default=1204)
     parser_inference.add_argument("--root", type=str, required=False, default="./")

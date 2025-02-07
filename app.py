@@ -51,14 +51,16 @@ if uploaded_file:
     image_orig = np.array(image)
 
     # Add sliders to adjust image size
-    scale = st.slider("Scale image", 0.1, 1.0, 0.5, 0.1)
+    scale = st.slider("Scale image", 0.1, 1.0, 0.3, 0.1)
     new_size = (int(image_orig.shape[1] * scale), int(image_orig.shape[0] * scale))
     image = Image.fromarray(image_orig).resize(new_size)
     image = np.array(image)
 
     # Display interactive image
-    st.write("Click on the image to mark the pith.")
-    coords = streamlit_image_coordinates(image)
+    st.warning("Click on the image to mark the pith.")
+    col1, col2, col3 = st.columns([1, 5, 1])
+    with col2:
+        coords = streamlit_image_coordinates(image)
 
     if coords:
         x, y = coords["x"], coords["y"]
@@ -79,7 +81,7 @@ if uploaded_file:
             th_high = 20
             nr = 360
             min_chain_length = 2
-            weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/runs/20250130-221624/pinus_v1_1504_epochs_100_tile_256_batch_8_lr_0.001_resnet18_channels_3_thickness_3_augmentation/best_model.pth"
+            weights_path = "./models/deep_cstrd/256_pinus_v1_1504.pth"
             res = DeepTreeRingDetection(img_in, int(cy), int(cx), sigma, th_low, th_high, hsize,
                                         wsize,
                                         alpha, nr, min_chain_length, weights_path,
@@ -103,7 +105,7 @@ if (output_dir / current_image_path).exists():
 
 
     # Navigation buttons
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write(Path(current_image_path).stem)
         st.image(current_image, caption=current_image_path, use_column_width=True)
