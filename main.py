@@ -42,6 +42,7 @@ def save_config(args, root_path, output_dir):
 
     config['devernay_path'] = str(Path(root_path) / "externas/devernay_1.0")
 
+    (Path(root_path) / "config").mkdir(parents=True, exist_ok=True)
     write_json(config, Path(root_path) / 'config/general.json')
 
     return 0
