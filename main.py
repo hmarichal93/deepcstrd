@@ -5,6 +5,8 @@ from pathlib import Path
 
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from deep_cstrd.training import training, segmentation_model
+from deep_cstrd.metrics_evaluation import evaluate
+
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import save_config, saving_results
 
 
@@ -76,6 +78,13 @@ if __name__ == "__main__":
     parser_train.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
     parser_train.add_argument("--debug", type=bool, default=True, help="Debug mode")
     parser_train.set_defaults(func=training)
+
+    parser_evaluate = subparsers.add_parser('evaluate', help='Evaluate the tree ring detection pipeline')
+    parser_evaluate.add_argument("--dataset_dir", type=str, required=False,
+                                 default="/data/maestria/resultados/deep_cstrd_datasets_train/pinus_v2_1504/test")
+    parser_evaluate.add_argument("--results_path", type=str, required=False,
+                                 default="/data/maestria/resultados/deep_cstrd_inbd/pinus_v2_1504/inference/inbd_results/2025-01-30_19h41m28s_INBD_100e_a6.3__/inbd_urudendro_labels/")
+    parser_evaluate.set_defaults(func=evaluate)
 
     args = parser.parse_args(sys.argv[1:] or ['--help'])
     args.func(args)

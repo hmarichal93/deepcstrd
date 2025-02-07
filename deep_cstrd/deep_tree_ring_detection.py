@@ -7,9 +7,7 @@ from cross_section_tree_ring_detection.cross_section_tree_ring_detection import 
                                                                                  postprocessing, chain_2_labelme_json)
 
 from deep_cstrd.preprocessing import preprocessing
-from deep_cstrd.sampling import sampling_edges
-from deep_cstrd.filter_edges import filter_edges
-from deep_cstrd.model import deep_learning_edge_detector
+from deep_cstrd.model import deep_contour_detector
 
 
 def DeepTreeRingDetection(im_in, cy, cx, sigma, th_low, th_high, height, width, alpha, nr, mc, weights_path, total_rotations,
@@ -45,29 +43,23 @@ def DeepTreeRingDetection(im_in, cy, cx, sigma, th_low, th_high, height, width, 
     # Line 1 Preprocessing image.
     im_pre, cy, cx = preprocessing(im_in, height, width, cy, cx)
     # Line 2 Edge detector module.
-    m_ch_e, gx, gy = deep_learning_edge_detector(im_pre,  weights_path=weights_path, output_dir=Path(debug_output_dir),
-                                                  cy=cy, cx=cx, total_rotations=total_rotations,debug=debug,
-                                                 tile_size=tile_size,
-                                                 prediction_map_threshold = prediction_map_threshold)
+    l_ch_s, l_nodes_s = deep_contour_detector(im_pre, weights_path=weights_path, output_dir=Path(debug_output_dir),
+                                           cy=cy, cx=cx, total_rotations=total_rotations, debug=debug,
+                                           tile_size=tile_size,
+                                           prediction_map_threshold = prediction_map_threshold,
+                                           alpha=alpha, mc=mc, nr=nr)
     #conver im_pre to gray scale
     im_pre = cv2.cvtColor(im_pre, cv2.COLOR_BGR2GRAY)
     im_in = cv2.cvtColor(im_in, cv2.COLOR_RGB2BGR)
-    # Line 3 Edge filtering module. Algorithm 4 in the supplementary material.
-    l_ch_f = filter_edges(m_ch_e, cy, cx, gx, gy, alpha, im_pre)
-    # Line 4 Sampling edges. Algorithm 6 in the supplementary material.
-    l_ch_s, l_nodes_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug,
-                                       debug_output_dir=Path(debug_output_dir))
     # Line 5 Connect chains. Algorithm 7 in the supplementary material. Im_pre is used for debug purposes
-    debug = False
     l_ch_c,  l_nodes_c = connect_chains(l_ch_s, cy, cx, nr, debug, im_pre, debug_output_dir)
     # Line 6 Postprocessing chains. Algorithm 19 in the paper. Im_pre is used for debug purposes
-    debug= False
     l_ch_p = postprocessing(l_ch_c, l_nodes_c, debug, debug_output_dir, im_pre)
     # Line 7
     debug_execution_time = time.time() - to
     l_rings = chain_2_labelme_json(l_ch_p, height, width, cy, cx, im_in, debug_image_input_path, debug_execution_time)
 
-    return im_in, im_pre, m_ch_e, l_ch_f, l_ch_s, l_ch_c, l_ch_p, l_rings
+    return im_in, im_pre, [], [], l_ch_s, l_ch_c, l_ch_p, l_rings
 
 
 

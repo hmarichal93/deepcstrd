@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 
 from cross_section_tree_ring_detection.filter_edges import (change_reference_axis, normalized_row_matrix,
                                                             compute_angle_between_gradient_and_edges,
@@ -29,6 +30,7 @@ def filter_edges(m_ch_e, cy, cx, Gx, Gy, alpha, im_pre):
     @return:
     - l_ch_f: filtered devernay curves
     """
+
     # Line 1 change reference axis
     Xb = change_reference_axis(m_ch_e, cy, cx)
     # Line 2 get normalized gradient at each edge
