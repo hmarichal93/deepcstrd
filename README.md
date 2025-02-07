@@ -46,6 +46,19 @@ python main.py inference
 python main.py inference --input input/F02c.png --cy 1264 --cx 1204  --output_dir ./output --root ./ --weights_path ./models/deep_cstrd/256_pinus_v1_1504.pth
 ```
 
+## Train
+
+```bash 
+python main.py train --dataset_dir DATASET_PATH --logs_dir SAVE_DIR
+```
+Where DATASET_PATH is the path to the dataset folder containing the images and the annotations, and SAVE_DIR is the path to the directory where the models are going to be saved
+
+Training can be monitored using tensorboard
+```bash
+tensorboard --logdir=SAVE_DIR
+```
+
+
 ## More Examples 
 
 ***
