@@ -33,7 +33,8 @@ cd uruDendro/
 pip install .
 ```
 
-3) Test. Results should appear in the output/F02c folder
+### Test
+Results should appear in the output/F02c folder
 ```bash
 python main.py inference
 ```
