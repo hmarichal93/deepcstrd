@@ -41,8 +41,10 @@ else:
     hsize = 1504
     wsize = 1504
 
+st.divider()
 # Upload image
 uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"])
+st.divider()
 if uploaded_file:
     image = Image.open(uploaded_file)
     original_size = image.size  # Save original size
@@ -65,7 +67,7 @@ if uploaded_file:
         st.session_state["coords"] = (cx, cy)
         st.write(f"Last selected position in original scale: X = {cx}, Y = {cy}")
         if st.button("Run"):
-
+            st.warning("Running DeepCS-TRD...")
             os.system(f"rm -rf {output_dir}")
             output_dir.mkdir(exist_ok=True, parents=True)
             input_path = str( output_dir / "input.png")
@@ -86,8 +88,10 @@ if uploaded_file:
                                         prediction_map_threshold)
 
             saving_results(res, output_dir, True)
+            st.warning("DeepCS-TRD finished.")
 
 
+st.divider()
 uploaded_files = ["chains.png", "connect.png","postprocessing.png", "output.png"]
 if "current_image_index" not in st.session_state:
     st.session_state["current_image_index"] = 0
