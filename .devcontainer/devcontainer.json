@@ -6,7 +6,7 @@
       "version": "3.12.8"
     }
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libgeos-dev && pip install -r requirements.txt && git clone https://github.com/hmarichal93/cstrd_ipol.git && cd cstrd_ipol && pip install . && cd .. && git clone https://github.com/hmarichal93/uruDendro.git && cd uruDendro && pip install . && cd .. && streamlit run app.py",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libgeos-dev && pip install -r requirements.txt && git clone https://github.com/hmarichal93/cstrd_ipol.git && cd cstrd_ipol && pip install . && cd .. && git clone https://github.com/hmarichal93/uruDendro.git && cd uruDendro && pip install . ",
   "customizations": {
     "vscode": {
       "extensions": ["ms-python.python"]

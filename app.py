@@ -14,6 +14,26 @@ from pathlib import Path
 from urudendro.image import load_image
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import saving_results
+
+class DeepCSTRD_MODELS:
+    pinus_v1 = "Pinus V1"
+    pinus_v2 = "Pinus V2"
+    gleditsia = "Gleditsia"
+    salix = "Salix Glauca"
+
+def get_model_path(model_id):
+    root_path = "./models/deep_cstrd/"
+    if model_id == DeepCSTRD_MODELS.pinus_v1:
+        return os.path.join(root_path, "256_pinus_v1_1504.pth")
+    elif model_id == DeepCSTRD_MODELS.pinus_v2:
+        return os.path.join(root_path, "256_pinus_v2_1504.pth")
+    elif model_id == DeepCSTRD_MODELS.gleditsia:
+        return os.path.join(root_path, "256_gleditsia_1504.pth")
+    elif model_id == DeepCSTRD_MODELS.salix:
+        return os.path.join(root_path, "256_salix_1504.pth")
+    else:
+        raise "models does not exist"
+
 # Reduce app margins
 run = False
 st.set_page_config(layout="wide")
@@ -68,6 +88,7 @@ if uploaded_file:
         cy = int(y / scale)
         st.session_state["coords"] = (cx, cy)
         st.write(f"Last selected position in original scale: X = {cx}, Y = {cy}")
+        model_radio  = st.radio("Select a model", [DeepCSTRD_MODELS.pinus_v1, DeepCSTRD_MODELS.pinus_v2,  DeepCSTRD_MODELS.gleditsia, DeepCSTRD_MODELS.salix], horizontal=True)
         if st.button("Run"):
             st.warning("Running DeepCS-TRD...")
             os.system(f"rm -rf {output_dir}")
@@ -81,7 +102,7 @@ if uploaded_file:
             th_high = 20
             nr = 360
             min_chain_length = 2
-            weights_path = "./models/deep_cstrd/256_pinus_v1_1504.pth"
+            weights_path = get_model_path(model_radio)
             res = DeepTreeRingDetection(img_in, int(cy), int(cx), sigma, th_low, th_high, hsize,
                                         wsize,
                                         alpha, nr, min_chain_length, weights_path,
@@ -111,13 +132,14 @@ if (output_dir / current_image_path).exists():
         st.image(current_image, caption=current_image_path, use_column_width=True)
 
     with col1:
+        if st.button("Next"):
+            st.session_state["current_image_index"] = (st.session_state["current_image_index"] + 1) % len(
+                uploaded_files)
+
         if st.button("Previous"):
             st.session_state["current_image_index"] = (st.session_state["current_image_index"] - 1) % len(
                 uploaded_files)
 
-        if st.button("Next"):
-            st.session_state["current_image_index"] = (st.session_state["current_image_index"] + 1) % len(
-                uploaded_files)
 
 
 
