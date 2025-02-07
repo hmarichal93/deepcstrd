@@ -53,7 +53,10 @@ class RingSegmentationModel:
         else:
             raise ValueError("Invalid model type")
 
-        model.load_state_dict(torch.load(weights_path))
+        if torch.cuda.is_available():
+            model.load_state_dict(torch.load(weights_path))
+        else:
+            model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
         #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         device = torch.device("cpu")
         model = model.to(device)
