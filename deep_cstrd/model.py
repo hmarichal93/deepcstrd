@@ -252,7 +252,8 @@ def deep_contour_detector(img,
     pred_dict = {}
     for angle in angle_range:
         output_dir_angle = Path(output_dir) / f"{angle}"
-        output_dir_angle.mkdir(parents=True, exist_ok=True)
+        if debug:
+            output_dir_angle.mkdir(parents=True, exist_ok=True)
         output_dir_angle = None if not debug else output_dir_angle
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)

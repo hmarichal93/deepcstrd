@@ -77,7 +77,7 @@ def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v
         dt = results_path / f"{sample}/labelme.json"
         if not dt.exists():
             dt = results_path / f"{sample}/{sample}.json"
-
+        print(dt)
         if not dt.exists():
             continue
 
