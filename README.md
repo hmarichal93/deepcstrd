@@ -41,7 +41,10 @@ Results should appear in the output/F02c folder
 python main.py inference
 ```
 
-
+### Usage
+```bash
+python main.py inference --input input/F02c.png --cy 1264 --cx 1204  --output_dir ./output --root ./ --weights_path ./models/deep_cstrd/256_pinus_v1_1504.pth
+```
 
 ## More Examples 
 
