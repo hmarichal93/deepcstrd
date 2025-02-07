@@ -1,0 +1,16 @@
+{
+  "name": "Streamlit App Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    }
+  },
+  "postCreateCommand": "apt-get update && apt-get install -y libgeos-dev && pip install -r requirements.txt && git clone https://github.com/hmarichal93/cstrd_ipol.git && cd cstrd_ipol && pip install . && cd .. && git clone https://github.com/hmarichal93/uruDendro.git && cd uruDendro && pip install . && cd .. && streamlit run app.py --server.enableCORS false --server.port 8501 --server.address 0.0.0.0",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  },
+  "forwardPorts": [8501]
+}
