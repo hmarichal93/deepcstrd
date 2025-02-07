@@ -1,3 +1,9 @@
-#copy files to cluster uy
+# DeepCS-TRD
+DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images of Pinus taeda and Gleditsia triacanthos.
 
-rsync -avz  -e "ssh -p 10022" /data/maestria/resultados/deep_cstrd/ henry.marichal@cluster.uy:/clusteruy/home/henry.marichal/datasets/deep_cstrd
+***
+<img src="assets/deepCS-TRD_gleditsia.png" alt="Example input image and detected tree rings"/>
+
+<img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
+
+***
