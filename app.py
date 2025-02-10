@@ -12,6 +12,7 @@ from streamlit_image_coordinates import streamlit_image_coordinates
 from pathlib import Path
 
 from urudendro.image import load_image
+from urudendro.io import load_json
 from urudendro.remove_salient_object import remove_salient_object
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import saving_results
@@ -146,6 +147,13 @@ if (output_dir / current_image_path).exists():
         if st.button("Previous"):
             st.session_state["current_image_index"] = (st.session_state["current_image_index"] - 1) % len(
                 uploaded_files)
+
+        #download button
+        labelme_json = load_json(str(output_dir/"labelme.json"))
+        import json
+        json_str = json.dumps(labelme_json, indent=4)
+        st.download_button("Download", json_str, file_name="data.json",  mime="application/json",
+                           help='Download ring predictions in labelme format')
 
 
 
