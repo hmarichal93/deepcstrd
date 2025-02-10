@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import glob
 
+from time import time
 from pathlib import Path
 from fpdf import FPDF
 from natsort import natsorted
@@ -49,7 +50,7 @@ class TRD:
 
 def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
          weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
-         method=TRD.CSTRD):
+         method=TRD.CSTRD, total_rotations=4, tile_size=512, alpha=30):
 
     metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
     images_dir = Path(root_database) / "images/segmented"
@@ -57,6 +58,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
     results_path.mkdir(exist_ok=True, parents=True)
 
     metadata = pd.read_csv(metadata_filename)
+    df_time = pd.DataFrame(columns=["image", "time"])
     for idx in range(metadata.shape[0]):
         row = metadata.iloc[idx]
         name = row.Imagen
@@ -76,9 +78,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
         if (img_res_dir / "labelme.json").exists():
             continue
 
-
-
-
+        to = time()
         if method == TRD.CSTRD:
             print("CSTRD")
             from cross_section_tree_ring_detection.cross_section_tree_ring_detection import TreeRingDetection
@@ -94,9 +94,10 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
             saving_results(res, img_res_dir, 1)
 
         elif method == TRD.DEEPCSTRD:
+
             print("DeepCSTRD")
-            command = f"python main.py --input {img_filename} --sigma {sigma} --cy {cy} --cx {cx}  --root ./ --output_dir" \
-                      f" {img_res_dir}  --weights_path {weights_path}"
+            command = f"python main.py inference --input {img_filename} --sigma {sigma} --cy {cy} --cx {cx}  --root ./ --output_dir" \
+                      f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"
 
 
             print(command)
@@ -104,8 +105,17 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 
         else:
             print("Method not implemented")
+        tf = time() - to
+        df_time.loc[len(df_time)] = {"image": name, "time": tf}
 
+    df_time.to_csv(results_path / "time.csv", index=False)
     generate_pdf(results_path)
+
+    #run metric
+    command = f"python main.py evaluate --dataset_dir {root_database} --results_path {results_path}"
+    os.system(command)
+
+    return
 
 
 
@@ -120,9 +130,17 @@ if __name__=='__main__':
                         help='Path to the weights directory')
     parser.add_argument('--method', type=int, default=TRD.CSTRD,
                         help='Method to use for tree ring detection. 1: CSTRD, 2: INBD, 3: DEEPCSTRD')
+    parser.add_argument('--total_rotations', type=int, default=4,
+                        help='Number of rotations to use for deepcstrd')
+    parser.add_argument('--tile_size', type=int, default=512,
+                        help='Tile size for')
+    parser.add_argument('--alpha', type=int, default=45,
+                        help='Edge filtering parameter. Collinearity')
+
     args = parser.parse_args()
 
-    main(args.dataset_dir, args.results_path, args.weights_path, args.method)
+    main(args.dataset_dir, args.results_path, args.weights_path, args.method, args.total_rotations, args.tile_size,
+         args.alpha)
 
 
 
