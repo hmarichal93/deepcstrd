@@ -7,6 +7,13 @@ Run app
 ```bash
 streamlit run app.py
 ```
+
+***
+
+<div style="text-align: center;">
+    <img src="assets/results.png" alt="Example input image and detected tree rings"/>
+</div>
+
 ***
 
 <img src="assets/deepCS-TRD_pinus2.png" alt="Example input image and detected tree rings"/>
