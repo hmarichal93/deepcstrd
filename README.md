@@ -51,13 +51,21 @@ python main.py inference --input input/F02c.png --cy 1264 --cx 1204  --output_di
 ```bash 
 python main.py train --dataset_dir DATASET_PATH --logs_dir SAVE_DIR
 ```
-Where DATASET_PATH is the path to the dataset folder containing the images and the annotations, and SAVE_DIR is the path to the directory where the models are going to be saved
+Where DATASET_PATH is the path to the dataset folder containing the images and the annotations, and SAVE_DIR is the 
+path to the directory where the models are going to be saved
 
 Training can be monitored using tensorboard
 ```bash
 tensorboard --logdir=SAVE_DIR
 ```
 
+## Evaluate 
+
+```bash 
+python main.py evaluate --dataset_dir DATASET_PATH --results_path RESULT_PATH
+```
+Where DATASET_PATH is the path to the dataset folder containing the images and the annotations, 
+and RESULT_PATH is the path to the directory where the results are going to be saved.
 
 ## More Examples 
 
