@@ -1,7 +1,7 @@
 # DeepCS-TRD
 DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images of Pinus taeda and Gleditsia triacanthos.
 ***
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=894688718&ref=develop&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsEast)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=894688718&ref=main&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsEast)
 
 Run app 
 ```bash
