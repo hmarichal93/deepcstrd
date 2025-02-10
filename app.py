@@ -12,6 +12,7 @@ from streamlit_image_coordinates import streamlit_image_coordinates
 from pathlib import Path
 
 from urudendro.image import load_image
+from urudendro.remove_salient_object import remove_salient_object
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import saving_results
 
@@ -61,6 +62,7 @@ else:
     hsize = 1504
     wsize = 1504
 
+check_remove = st.sidebar.checkbox("Remove Background", value=True)
 st.divider()
 # Upload image
 uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"])
@@ -96,6 +98,8 @@ if uploaded_file:
             input_path = str( output_dir / "input.png")
 
             cv2.imwrite(str(input_path), cv2.cvtColor(image_orig, cv2.COLOR_RGB2BGR))
+            if check_remove:
+                remove_salient_object(input_path, input_path)
             img_in  = load_image(input_path)
             sigma = 3
             th_low = 5
@@ -103,6 +107,9 @@ if uploaded_file:
             nr = 360
             min_chain_length = 2
             weights_path = get_model_path(model_radio)
+
+
+
             res = DeepTreeRingDetection(img_in, int(cy), int(cx), sigma, th_low, th_high, hsize,
                                         wsize,
                                         alpha, nr, min_chain_length, weights_path,
