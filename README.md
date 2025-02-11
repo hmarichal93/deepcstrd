@@ -1,6 +1,8 @@
 # DeepCS-TRD
 DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images of Pinus taeda and Gleditsia triacanthos.
 ***
+![Python Version](https://img.shields.io/badge/python-3.12-blue)
+
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=894688718&ref=main&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsEast)
 
 Run app 
@@ -24,6 +26,9 @@ streamlit run app.py
 ```bash
 conda env create -f environment.yml
 conda activate deep_cstrd
+apt-get install git-lfs
+git lfs pull
+python setup.py install
 pip install -r requirements.txt
 ```
 
@@ -32,14 +37,16 @@ pip install -r requirements.txt
 ```bash 
 git clone https://github.com/hmarichal93/cstrd_ipol.git
 cd cstrd_ipol/
-pip install .
+python setup.py install
+pip install -r requirements.txt
 cd .. 
 ```
 2) UruDendro
 ```bash
 git clone https://github.com/hmarichal93/uruDendro.git
 cd uruDendro/
-pip install .
+python setup.py install
+pip install -r requirements.txt
 ```
 
 ### Test
@@ -65,6 +72,9 @@ Training can be monitored using tensorboard
 ```bash
 tensorboard --logdir=SAVE_DIR
 ```
+<div style="text-align: center;">
+    <img src="assets/tensorboard.png" alt="Example input image and detected tree rings"/>
+</div>
 
 ## Evaluate 
 

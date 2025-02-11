@@ -102,16 +102,13 @@ if uploaded_file:
             if check_remove:
                 remove_salient_object(input_path, input_path)
             img_in  = load_image(input_path)
-            sigma = 3
-            th_low = 5
-            th_high = 20
             nr = 360
             min_chain_length = 2
             weights_path = get_model_path(model_radio)
 
 
 
-            res = DeepTreeRingDetection(img_in, int(cy), int(cx), sigma, th_low, th_high, hsize,
+            res = DeepTreeRingDetection(img_in, int(cy), int(cx), hsize,
                                         wsize,
                                         alpha, nr, min_chain_length, weights_path,
                                         total_rotations,
