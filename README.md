@@ -34,14 +34,16 @@ pip install -r requirements.txt
 ```bash 
 git clone https://github.com/hmarichal93/cstrd_ipol.git
 cd cstrd_ipol/
-pip install .
+python setup.py install
+pip install -r requirements.txt
 cd .. 
 ```
 2) UruDendro
 ```bash
 git clone https://github.com/hmarichal93/uruDendro.git
 cd uruDendro/
-pip install .
+python setup.py install
+pip install -r requirements.txt
 ```
 
 ### Test
@@ -67,6 +69,9 @@ Training can be monitored using tensorboard
 ```bash
 tensorboard --logdir=SAVE_DIR
 ```
+<div style="text-align: center;">
+    <img src="assets/tensorboard.png" alt="Example input image and detected tree rings"/>
+</div>
 
 ## Evaluate 
 
