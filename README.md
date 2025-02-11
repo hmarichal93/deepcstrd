@@ -26,6 +26,7 @@ streamlit run app.py
 ```bash
 conda env create -f environment.yml
 conda activate deep_cstrd
+python setup.py install
 pip install -r requirements.txt
 ```
 

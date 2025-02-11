@@ -159,85 +159,14 @@ def rotate_image(image, center, angle=90):
     rotated_image = cv2.warpAffine(image.copy(), rotation_matrix, (w, h))
     return rotated_image
 
-import numpy as np
-from scipy.spatial import distance
-
-
-def find_extreme_points(skeleton_points):
-    """Encuentra los puntos extremos del esqueleto."""
-    from scipy.spatial import cKDTree
-
-    # Crear un árbol KD para calcular los vecinos
-    tree = cKDTree(skeleton_points)
-    extremes = []
-
-    for point in skeleton_points:
-        # Buscar vecinos dentro de un radio pequeño (8-conectividad)
-        distances, indices = tree.query(point, k=17)
-        neighbor_count = np.sum(distances < 1.5) - 1  # Ignorar el punto mismo
-        if neighbor_count == 1:
-            extremes.append(tuple(point))
-
-    return extremes
-def order_points_continuous(skeleton_points, start_point):
-    """Ordena los puntos del esqueleto en una lista continua."""
-    skeleton_points = set(map(tuple, skeleton_points))  # Convertir a tuplas para facilitar la búsqueda
-    ordered_points = []
-    current_point = start_point
-
-    while skeleton_points:
-        ordered_points.append(current_point)
-        skeleton_points.remove(current_point)
-
-        # Encontrar el vecino más cercano
-        neighbors = [(current_point[0] + dx, current_point[1] + dy)
-                     for dx in [-1, 0, 1] for dy in [-1, 0, 1] if (dx, dy) != (0, 0)]
-        next_point = None
-        for neighbor in neighbors:
-            if neighbor in skeleton_points:
-                next_point = neighbor
-                break
-        if next_point is None:
-            break
-        current_point = next_point
-
-    return np.array(ordered_points)[:,[1,0]].tolist()
-
-def regions_to_curves_with_skimage(skeleton):
-    from skimage.measure import label, regionprops, find_contours
-    contours = find_contours(skeleton, 0.5, fully_connected="high")
-    m_ch_e = []
-    for c in contours:
-        c = np.round(c[:,[1,0]]).astype(int)
-        m_ch_e.extend(c.tolist() + [[-1, -1]])
-    return np.array(m_ch_e)
-
-def regions_to_curves(skeleton):
-    from skimage.measure import label, regionprops, find_contours
-
-    labeled_image = label(skeleton, connectivity=1)
-    m_ch_e = []
-    for region_label in range(1, labeled_image.max() + 1):
-        region_points = np.argwhere(labeled_image == region_label)
-        extremes = find_extreme_points(region_points)
-        if not extremes:
-            continue
-        ordered_points = order_points_continuous(region_points, extremes[0])
-        if ordered_points is None:
-            continue
-        m_ch_e.extend(ordered_points + [[-1, -1]])
-    m_ch_e = np.array(m_ch_e)
-    return m_ch_e
 def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False, ):
-    from skimage.morphology import skeletonize
     skeleton = skeletonize(pred)
-    #m_ch_e = regions_to_curves(skeleton)
-    #m_ch_e = regions_to_curves_with_skimage(skeleton)
+
     m_ch_e = model.compute_connected_components_by_contour(np.where(skeleton, 255, 0), output_dir, debug)
     return m_ch_e
 
 def deep_contour_detector(img,
-                          weights_path= "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth",
+                          weights_path= "models/deep_cstrd/256_pinus_v1_1504.pth",
                           output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0,
                           prediction_map_threshold=0.2, alpha=30, mc=2, nr=360):
 
@@ -269,8 +198,6 @@ def deep_contour_detector(img,
     for angle in angle_range:
         pred += pred_dict[angle]
     pred = pred / total_rotations
-    #clip the values to 0
-    # scale the values to 0-255
     if output_dir and debug:
         draw_pred_mask(pred, img, output_dir, cx, cy)
 
@@ -283,9 +210,9 @@ def deep_contour_detector(img,
 
     im_pre = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Line 3 Edge filtering module. Algorithm 4 in the supplementary material.
+    # Line 3 Edge filtering module.
     l_ch_f = filter_edges(m_ch_e, cy, cx, gy, gx, alpha, im_pre)
-    # Line 4 Sampling edges. Algorithm 6 in the supplementary material.
+    # Line 4 Sampling edges.
     l_ch_s, l_nodes_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug,
                                        debug_output_dir=Path(output_dir))
 

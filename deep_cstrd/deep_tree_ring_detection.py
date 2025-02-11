@@ -10,16 +10,13 @@ from deep_cstrd.preprocessing import preprocessing
 from deep_cstrd.model import deep_contour_detector
 
 
-def DeepTreeRingDetection(im_in, cy, cx, sigma, th_low, th_high, height, width, alpha, nr, mc, weights_path, total_rotations,
+def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_path, total_rotations,
                       debug= False, debug_image_input_path=None, debug_output_dir=None, tile_size=0, prediction_map_threshold=0.2):
     """
-    Method for delineating tree ring over pine cross sections images. Implements Algorithm 1 from the paper.
+    Method for delineating tree ring in wood cross-section images.
     @param im_in: segmented input image. Background must be white (255,255,255).
     @param cy: pith y's coordinate
     @param cx: pith x's coordinate
-    @param sigma: Canny edge detector gausssian kernel parameter
-    @param th_low: Low threshold on the module of the gradient. Canny edge detector parameter.
-    @param th_high: High threshold on the module of the gradient. Canny edge detector parameter.
     @param height: img_height of the image after the resize step
     @param width: width of the image after the resize step
     @param alpha: Edge filtering parameter. Collinearity threshold
