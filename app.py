@@ -122,7 +122,7 @@ if uploaded_file:
 st.divider()
 uploaded_files = ["chains.png", "connect.png","postprocessing.png", "output.png"]
 if "current_image_index" not in st.session_state:
-    st.session_state["current_image_index"] = 0
+    st.session_state["current_image_index"] = 3
 
 # Display the current image
 current_image_path = uploaded_files[st.session_state["current_image_index"]]
