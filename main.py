@@ -28,14 +28,6 @@ def save_config(args, root_path, output_dir):
     if args.edge_th:
         config["edge_th"] = args.edge_th
 
-    if args.sigma:
-        config['sigma'] = args.sigma
-
-    if args.th_high:
-        config['th_high'] = args.th_high
-
-    if args.th_low:
-        config['th_low'] = args.th_low
 
     if args.debug:
         config['debug'] = True
@@ -55,11 +47,13 @@ def inference(args):
     im_in = load_image(args.input)
 
     Path(args.output_dir).mkdir(exist_ok=True, parents=True)
-
-    res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.sigma, args.th_low, args.th_high, args.hsize, args.wsize,
+    import time
+    to = time.time()
+    res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.hsize, args.wsize,
                             args.edge_th, args.nr, args.min_chain_length, args.weights_path, args.total_rotations,
                             args.debug, args.input, args.output_dir, args.tile_size, args.prediction_map_threshold)
-
+    tf = time.time() - to
+    print(f"Execution time: {tf}")
     saving_results(res, args.output_dir, args.save_imgs)
 
     return 0
@@ -110,7 +104,7 @@ if __name__ == "__main__":
     parser_train.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser_train.add_argument("--augmentation", type=bool, default=True, help="Apply augmentation to the dataset")
     parser_train.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
-    parser_train.add_argument("--debug", type=bool, default=True, help="Debug mode")
+    parser_train.add_argument("--debug", type=bool, default=False, help="Debug mode")
     parser_train.set_defaults(func=training)
 
     parser_evaluate = subparsers.add_parser('evaluate', help='Evaluate the tree ring detection pipeline')

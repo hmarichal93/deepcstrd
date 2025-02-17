@@ -23,47 +23,60 @@ class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
                  tile_size=512, overlap=0.1, output_dir=None, model_type=segmentation_model.UNET):
         self.model_type = model_type
-        self.model = self.load_model(weights_path)
-        self.model.eval()
         self.tile_size = tile_size
         self.overlap = overlap
         self.output_dir = output_dir
+        self.model = self.load_model(weights_path)
+        self.model.eval()
 
-
-    def load_model(self, weights_path, encoder='resnet18'):
-
+    @staticmethod
+    def load_architecture(model_type, encoder='resnet18', channels=3, dropout=False):
         # Load your model here
-        if self.model_type == segmentation_model.UNET:
+        if model_type == segmentation_model.UNET:
             model = smp.Unet(
                 encoder_name=encoder,
-                encoder_weights=None,
-                in_channels=3,
-                classes=1
+                encoder_weights="imagenet",
+                in_channels=channels,
+                classes=1,
+                #aux_params=dict(dropout=0.3, classes=1) if dropout else None
             )
-        elif self.model_type == segmentation_model.UNET_PLUS_PLUS:
+        elif model_type == segmentation_model.UNET_PLUS_PLUS:
             model = smp.UnetPlusPlus(
-                encoder_name="resnet34",
-                encoder_weights=None,
-                in_channels=3,
-                classes=1
+                encoder_name=encoder,
+                encoder_weights="imagenet",
+                in_channels=channels,
+                classes=1,
+                #aux_params=dict(dropout=0.3, classes=1) if dropout else None
             )
-        elif self.model_type == segmentation_model.MASK_RCNN:
+        elif model_type == segmentation_model.MASK_RCNN:
             model = torchvision.models.detection.mask_rcnn.MaskRCNN(backbone="resnet50", num_classes=1, pretrained=True)
 
         else:
             raise ValueError("Invalid model type")
 
-        if torch.cuda.is_available():
-            model.load_state_dict(torch.load(weights_path))
-        else:
-            model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
-        #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        device = torch.device("cpu")
-        model = model.to(device)
-        self.device = device
         return model
 
-    def forward(self, img, output_dir=None):
+    def load_model(self, weights_path, encoder='resnet18'):
+
+        model = self.load_architecture(self.model_type, encoder, dropout=True)
+
+        if torch.cuda.is_available():
+            model.load_state_dict(torch.load(weights_path))
+            device = torch.device("cuda")
+        else:
+            model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
+            device = torch.device("cpu")
+        from torchinfo import summary
+        print(summary(model, input_size=(1, 3, self.tile_size, self.tile_size)))
+
+        model = model.to(device)
+        print(f"Model is running on: {device}")
+        self.device = device
+
+        return model
+
+    def forward(self, img, output_dir=None, batch_size=64):
+
         if output_dir:
             write_image(f"{output_dir}/img.png", img)
         if self.tile_size>0:
@@ -71,16 +84,20 @@ class RingSegmentationModel:
                                                 overlap=self.overlap, inference=True)
         else:
             image = np.array([img])
-        image = torch.from_numpy(image)
+
 
         with torch.no_grad():
+            image = torch.from_numpy(image).to(self.device)
             #split the image into tiles
             image = image.permute(0, 3, 1, 2).float() / 255.0  # Normalize to [0, 1]
-            if self.device.type == "cuda":
-                # convert rotated image to tensor
-                image = image.to(self.device)
-            pred = self.model(image)
-            pred = torch.sigmoid(pred)  # Apply sigmoid to get probabilities
+
+            pred = []
+            for i in range(0, image.shape[0], batch_size):
+                batch = image[i:i + batch_size]
+                pred += list(self.model(batch))
+
+            #pred = self.model(image)
+            pred = torch.sigmoid(torch.stack(pred))  # Apply sigmoid to get probabilities
             pred = pred.squeeze().cpu().numpy()  # Convert to numpy array
             if self.tile_size > 0:
                 pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
