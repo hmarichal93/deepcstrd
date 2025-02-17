@@ -19,6 +19,8 @@ class DiceLoss(nn.Module):
         Returns:
             Tensor: Dice loss for the batch.
         """
+        if type(y_pred ) == tuple:
+            y_pred = y_pred[0]
         y_pred = torch.sigmoid(y_pred)  # Ensure predictions are probabilities
         y_true = y_true.float()  # Convert ground truth to float
 
