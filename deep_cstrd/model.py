@@ -75,7 +75,7 @@ class RingSegmentationModel:
 
         return model
 
-    def forward(self, img, output_dir=None, batch_size=64):
+    def forward(self, img, output_dir=None, batch_size=2, sigmoid=False):
 
         if output_dir:
             write_image(f"{output_dir}/img.png", img)
@@ -96,8 +96,9 @@ class RingSegmentationModel:
                 batch = image[i:i + batch_size]
                 pred += list(self.model(batch))
 
-            #pred = self.model(image)
-            pred = torch.sigmoid(torch.stack(pred))  # Apply sigmoid to get probabilities
+            pred = torch.stack(pred)
+            if sigmoid:
+                pred = torch.sigmoid(pred)  # Apply sigmoid to get probabilities
             pred = pred.squeeze().cpu().numpy()  # Convert to numpy array
             if self.tile_size > 0:
                 pred = from_tiles_to_image(pred, self.tile_size, img, self.overlap, output_dir=output_dir, img=img)
@@ -206,12 +207,12 @@ def deep_contour_detector(img,
         output_dir_angle = None if not debug else output_dir_angle
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)
-        pred = model.forward(rot_image, output_dir=output_dir_angle)
+        pred = model.forward(rot_image, output_dir=output_dir_angle, sigmoid=prediction_map_threshold != 0)
         pred = rotate_image(pred, (cx, cy), angle=-angle)
         pred_dict[angle] = pred
 
     # Combine the predictions computing the average
-    pred = np.zeros_like(pred_dict[angle])
+    pred = np.zeros_like(pred_dict[angle], dtype=float)
     for angle in angle_range:
         pred += pred_dict[angle]
     pred = pred / total_rotations
@@ -219,7 +220,7 @@ def deep_contour_detector(img,
         draw_pred_mask(pred, img, output_dir, cx, cy)
 
     #binarize the mask
-    pred = (pred >= prediction_map_threshold).astype(np.uint8)  # Binarize the mask
+    pred = (pred > prediction_map_threshold).astype(np.uint8)  # Binarize the mask
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:
