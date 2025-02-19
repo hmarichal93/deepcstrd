@@ -12,7 +12,7 @@ from urudendro.drawing import Drawing, Color
 
 from deep_cstrd.dataset import create_tiles_with_labels, from_tiles_to_image, overlay_images, padding_image
 
-from deep_cstrd.sampling import sampling_edges
+from cross_section_tree_ring_detection.sampling import sampling_edges
 from deep_cstrd.filter_edges import filter_edges
 class segmentation_model:
     UNET = 1
@@ -247,8 +247,7 @@ def deep_contour_detector(img,
     # Line 3 Edge filtering module.
     l_ch_f = filter_edges(m_ch_e, cy, cx, gy, gx, alpha, im_pre)
     # Line 4 Sampling edges.
-    l_ch_s, l_nodes_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug,
-                                       debug_output_dir=Path(output_dir))
+    l_ch_s, l_nodes_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug)
 
     return l_ch_s, l_nodes_s
 
