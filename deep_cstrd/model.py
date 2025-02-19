@@ -109,7 +109,7 @@ class RingSegmentationModel:
         return pred
 
 
-    def compute_connected_components_by_contour(self, skeleton, output_dir, debug=True, minimum_length=10):
+    def compute_connected_components_by_contour(self, skeleton, output_dir, debug=True, minimum_length=10) -> np.ndarray:
 
         contours, hierarchy = cv2.findContours(skeleton.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         if debug:
@@ -177,10 +177,25 @@ def rotate_image(image, center, angle=90):
     rotated_image = cv2.warpAffine(image.copy(), rotation_matrix, (w, h))
     return rotated_image
 
-def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False, ):
+def remove_duplicated_elements_in_numpy_array(matrix):
+    # Find unique rows and their counts
+    unique_rows, indices, counts = np.unique(matrix, axis=0, return_inverse=True, return_counts=True)
+    # Identify repeated rows (keep one occurrence intact)
+    mask = np.zeros_like(indices, dtype=bool)
+    for i, count in enumerate(counts):
+        if count > 1:
+            repeated_indices = np.where(indices == i)[0]  # Find all occurrences
+            mask[repeated_indices[1:]] = True  # Mark all except the first one
+
+    # Replace repeated rows with [-1, -1]
+    matrix[mask] = [-1, -1]
+    return matrix
+
+def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False) -> np.ndarray:
     skeleton = skeletonize(pred)
 
     m_ch_e = model.compute_connected_components_by_contour(np.where(skeleton, 255, 0), output_dir, debug)
+    m_ch_e = remove_duplicated_elements_in_numpy_array(m_ch_e.astype(int))
     return m_ch_e
 
 def deep_contour_detector(img,
@@ -222,6 +237,7 @@ def deep_contour_detector(img,
     #binarize the mask
     pred = (pred > prediction_map_threshold).astype(np.uint8)  # Binarize the mask
     m_ch_e = from_prediction_mask_to_curves(pred, model, output_dir, debug)
+    ###
     gx, gy = model.compute_normals(m_ch_e, img.shape[0], img.shape[1])
     if output_dir and debug:
         draw_normals(img, m_ch_e, gx, gy, output_dir)

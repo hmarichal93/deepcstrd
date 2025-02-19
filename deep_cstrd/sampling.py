@@ -5,48 +5,56 @@ import cross_section_tree_ring_detection.chain as ch
 
 def remove_duplicated_elements(l_ch_s, l_nodes_s):
     """
-    This control must be done becuase the find contour method of opencv can return the same contour multiple times or with a high degree of overlapping.
-    :param l_ch_s:
-    :return:
+    This check is necessary because OpenCV's findContours method can return the same contour multiple times
+    or with a high degree of overlap.
+
+    :param l_ch_s: List of chains
+    :param l_nodes_s: List of nodes
+    :return: Filtered list of chains and nodes
     """
     l_ch_s_aux = []
-    #sorted by size l_ch_s
+
+    # Sort l_ch_s by size in descending order based on the number of nodes
     l_ch_s = sorted(l_ch_s, key=lambda x: len(x.l_nodes), reverse=True)
+
     for chain_1 in l_ch_s:
-        nodos_in_common = False
+        has_common_nodes = False
+
         for chain_2 in l_ch_s_aux:
             if chain_1 == chain_2:
                 if chain_1.id != chain_2.id:
-                    #nodes in common but different id. Chain that we want to delete
-                    nodos_in_common = True
-
+                    # Chains have common nodes but different IDs, marking it for removal
+                    has_common_nodes = True
                 continue
-            #check if they have nodes in common
-            for node in chain_1.l_nodes:
-                if node in chain_2.l_nodes:
-                    nodos_in_common = True
-                    break
 
-        if not nodos_in_common:
+            # Check if they have nodes in common
+            if any(node in chain_2.l_nodes for node in chain_1.l_nodes):
+                has_common_nodes = True
+                break
+
+        if not has_common_nodes:
             l_ch_s_aux.append(chain_1)
 
-
-
-
+    # Check if any duplicates were removed
     if len(l_ch_s_aux) != len(l_ch_s):
-        print(f"Removed {len(l_ch_s) - len(l_ch_s_aux)} duplicated chains")
+        removed_count = len(l_ch_s) - len(l_ch_s_aux)
+        print(f"Removed {removed_count} duplicated chains")
+
         l_ch_s = l_ch_s_aux
-        #chaing the chain id
+
+        # Reassign chain IDs
         for i, chain in enumerate(l_ch_s):
             chain.change_id(i)
             chain.label_id = chain.id
-        l_nodes_s = []
-        for chain in l_ch_s:
-            l_nodes_s += chain.l_nodes
 
+        # Rebuild l_nodes_s from the remaining chains
+        l_nodes_s = [node for chain in l_ch_s for node in chain.l_nodes]
 
+    else:
+        print("No duplicated chains found")
 
     return l_ch_s, l_nodes_s
+
 
 def control_check_duplicated_chains_in_list(l_within_chains):
     """
@@ -109,7 +117,7 @@ def sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=False, debug_output_dir
         ch.visualize_selected_ch_and_chains_over_image_(
             l_ch_s, [], img=im_pre, filename=f'{debug_output_dir}/chains_origin.png')
 
-    l_ch_s, l_nodes_s = remove_duplicated_elements(l_ch_s, l_nodes_s)
+    #l_ch_s, l_nodes_s = remove_duplicated_elements(l_ch_s, l_nodes_s)
 
     if debug:
         ch.visualize_selected_ch_and_chains_over_image_(

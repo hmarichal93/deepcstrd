@@ -82,7 +82,6 @@ if __name__ == "__main__":
     parser_inference.add_argument('--prediction_map_threshold', type=float, required=False, default=0.2)
     parser_inference.add_argument('--tile_size', type=int, required=False, default=256)
     parser_inference.add_argument("--debug", type=int, required=False)
-
     parser_inference.set_defaults(func=inference)
 
     parser_train = subparsers.add_parser('train', help='Train a network')
