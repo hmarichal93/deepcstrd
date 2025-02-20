@@ -13,6 +13,7 @@ from shapely.geometry import Polygon
 from urudendro.labelme import AL_LateWood_EarlyWood
 from urudendro.metric_influence_area import main as metric
 from urudendro.image import load_image
+from urudendro.io import load_json
 
 from deep_cstrd.inbd_evaluation import evaluate_single_result_from_files_at_iou_levels, combine_metrics_at_iou_levels
 
@@ -92,8 +93,11 @@ def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v
         else:
             P, R, F, RMSE, TP, FP, TN, FN = metric(str(dt), str(gt), str(img_path), str(output_sample_dir),0.6,  cy, cx)
 
-
-        exec_time = 0
+        try:
+            dt_json = load_json(str(dt))
+            exec_time = dt_json["exec_time(s)"]
+        except:
+            exec_time = 0
 
 
         imgg = load_image(str(img_path))
