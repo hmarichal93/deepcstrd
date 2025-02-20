@@ -51,7 +51,8 @@ def inference(args):
     to = time.time()
     res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.hsize, args.wsize,
                             args.edge_th, args.nr, args.min_chain_length, args.weights_path, args.total_rotations,
-                            args.debug, args.input, args.output_dir, args.tile_size, args.prediction_map_threshold)
+                            args.debug, args.input, args.output_dir, args.tile_size, args.prediction_map_threshold,
+                            args.batch_size)
     tf = time.time() - to
     print(f"Execution time: {tf}")
     saving_results(res, args.output_dir, args.save_imgs)
@@ -81,6 +82,7 @@ if __name__ == "__main__":
     parser_inference.add_argument("--total_rotations", type=int, required=False, default=4)
     parser_inference.add_argument('--prediction_map_threshold', type=float, required=False, default=0.2)
     parser_inference.add_argument('--tile_size', type=int, required=False, default=256)
+    parser_inference.add_argument('--batch_size', type=int, required=False, default=1)
     parser_inference.add_argument("--debug", type=int, required=False)
     parser_inference.set_defaults(func=inference)
 

@@ -67,7 +67,7 @@ class RingSegmentationModel:
             model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
             device = torch.device("cpu")
         from torchinfo import summary
-        print(summary(model, input_size=(1, 3, self.tile_size, self.tile_size)))
+        print(summary(model, input_size=(1, 3, self.tile_size if self.tile_size>0 else 1504, self.tile_size if self.tile_size>0 else 1504)))
 
         model = model.to(device)
         print(f"Model is running on: {device}")
@@ -201,7 +201,7 @@ def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False) ->
 def deep_contour_detector(img,
                           weights_path= "models/deep_cstrd/256_pinus_v1_1504.pth",
                           output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0,
-                          prediction_map_threshold=0.2, alpha=30, mc=2, nr=360):
+                          prediction_map_threshold=0.2, alpha=30, mc=2, nr=360, batch_size=1):
 
     h, w = img.shape[:2]
     if h % 32 != 0 or w % 32 != 0:
@@ -222,7 +222,8 @@ def deep_contour_detector(img,
         output_dir_angle = None if not debug else output_dir_angle
 
         rot_image = rotate_image(img, (cx, cy), angle=angle)
-        pred = model.forward(rot_image, output_dir=output_dir_angle, sigmoid=prediction_map_threshold != 0)
+        pred = model.forward(rot_image, output_dir=output_dir_angle, sigmoid=prediction_map_threshold != 0,
+                             batch_size=batch_size)
         pred = rotate_image(pred, (cx, cy), angle=-angle)
         pred_dict[angle] = pred
 
