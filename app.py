@@ -48,21 +48,22 @@ st.write("Upload an image and click to mark the pith of the wood disk.")
 #add check box to displya parameters
 st.sidebar.write("DeepCS-TRD Parameters")
 check = st.sidebar.checkbox("Show Parameters", value=False)
+config = load_json("./config/default.json")
 if check:
     # Adjustable parameters
-    alpha = st.slider("Angle α (degrees)", 0, 90, 30, 5)
+    alpha = st.slider("Angle α (degrees)", 0, 89, config.get("alpha"), 5)
     tile_size = st.selectbox("Tile Size", [0, 64, 128, 256, 512], index=3)
-    prediction_map_threshold = st.slider("Prediction Map Threshold", 0.0, 1.0, 0.2, 0.1)
-    total_rotations = st.slider("Total Rotations", 0, 8, 4, 1)
-    hsize = st.slider("Height", 0, 3500, 1504, 100)
-    wsize = st.slider("Width", 0, 3500, 1504, 100)
+    prediction_map_threshold = st.slider("Prediction Map Threshold", 0.0, 1.0, config.get("prediction_map_th"), 0.1)
+    total_rotations = st.slider("Total Rotations", 0, 8, config.get("total_rotations"), 1)
+    hsize = st.slider("Height", 0, 3500, config.get("hsize"), 100)
+    wsize = st.slider("Width", 0, 3500, config.get("wsize"), 100)
 else:
-    alpha = 30
-    tile_size = 256
-    prediction_map_threshold = 0.2
-    total_rotations = 4
-    hsize = 1504
-    wsize = 1504
+    alpha = config.get("alpha")
+    tile_size = config.get("tile_size")
+    prediction_map_threshold = config.get("prediction_map_th")
+    total_rotations = config.get("total_rotations")
+    hsize = config.get("hsize")
+    wsize = config.get("wsize")
 
 check_remove = st.sidebar.checkbox("Remove Background", value=True)
 st.divider()
