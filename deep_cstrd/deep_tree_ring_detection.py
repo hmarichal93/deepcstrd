@@ -56,7 +56,7 @@ def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_p
     l_ch_p = postprocessing(l_ch_c, l_nodes_c, False, debug_output_dir, im_pre)
     # Line 7
     debug_execution_time = time.time() - to
-    l_rings = chain_2_labelme_json(l_ch_p, im_pre.shape[0], im_pre.shape[1], cy, cx, im_pre, debug_image_input_path, debug_execution_time)
+    l_rings = chain_2_labelme_json(l_ch_p, im_in.shape[0], im_in.shape[1], cy, cx, im_in, debug_image_input_path, debug_execution_time)
 
     return im_in, im_pre, [], [], l_ch_s, l_ch_c, l_ch_p, l_rings
 
