@@ -192,9 +192,10 @@ def remove_duplicated_elements_in_numpy_array(matrix):
     return matrix
 
 def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False) -> np.ndarray:
-    skeleton = skeletonize(pred)
+    #skeleton = np.where(skeletonize(pred), 255, 0)
+    skeleton = cv2.ximgproc.thinning(pred*255, thinningType=cv2.ximgproc.THINNING_ZHANGSUEN)
 
-    m_ch_e = model.compute_connected_components_by_contour(np.where(skeleton, 255, 0), output_dir, debug)
+    m_ch_e = model.compute_connected_components_by_contour(skeleton, output_dir, debug)
     m_ch_e = remove_duplicated_elements_in_numpy_array(m_ch_e.astype(int))
     return m_ch_e
 
