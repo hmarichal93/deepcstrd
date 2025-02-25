@@ -11,12 +11,13 @@ from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from pathlib import Path
 
-from urudendro.image import load_image
+from urudendro.image import load_image, write_image
 from urudendro.io import load_json
 from urudendro.remove_salient_object import remove_salient_object
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import saving_results
 from preparing_dataset.labelme_dataset import crop_image
+from deep_cstrd.preprocessing import resize
 
 class DeepCSTRD_MODELS:
     pinus_v1 = "Pinus V1"
@@ -111,7 +112,11 @@ if uploaded_file:
             min_chain_length = 2
             weights_path = get_model_path(model_radio)
 
-
+            if hsize>0 and wsize>0:
+                img_in, cy, cx = resize(img_in, hsize, wsize, cy, cx)
+                hsize=0
+                wsize=0
+                write_image( str(output_dir/"input_app.png"),img_in)
 
             res = DeepTreeRingDetection(img_in, int(cy), int(cx), hsize,
                                         wsize,
@@ -160,7 +165,7 @@ if (output_dir / current_image_path).exists():
         st.download_button("Predictions", json_str, file_name="data.json",  mime="application/json",
                            help='Download ring predictions in labelme format')
 
-        img = load_image(str(output_dir/"input.png"))
+        img = load_image(str(output_dir/"input_app.png"))
         # Encode the image as PNG
         _, img_encoded = cv2.imencode('.png', img)
 
