@@ -68,7 +68,7 @@ else:
 check_remove = st.sidebar.checkbox("Remove Background", value=True)
 st.divider()
 # Upload image
-uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"])
+uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"], help="Issues may raise with file size higher than 10MB")
 st.divider()
 if uploaded_file:
     image = Image.open(uploaded_file)
