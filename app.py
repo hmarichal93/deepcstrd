@@ -16,6 +16,7 @@ from urudendro.io import load_json
 from urudendro.remove_salient_object import remove_salient_object
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import saving_results
+from preparing_dataset.labelme_dataset import crop_image
 
 class DeepCSTRD_MODELS:
     pinus_v1 = "Pinus V1"
@@ -101,6 +102,9 @@ if uploaded_file:
             cv2.imwrite(str(input_path), cv2.cvtColor(image_orig, cv2.COLOR_RGB2BGR))
             if check_remove:
                 remove_salient_object(input_path, input_path)
+                y_min, x_min, _, _ =crop_image(image_path=input_path,output_image_path=input_path, annotation=False)
+                cy -=y_min
+                cx -=x_min
             img_in  = load_image(input_path)
             nr = 360
             min_chain_length = 2
@@ -145,12 +149,24 @@ if (output_dir / current_image_path).exists():
             st.session_state["current_image_index"] = (st.session_state["current_image_index"] - 1) % len(
                 uploaded_files)
 
+        st.divider()
+        st.write("Download")
         #download button
         labelme_json = load_json(str(output_dir/"labelme.json"))
+        labelme_json["imagePath"] = "data.png"
         import json
         json_str = json.dumps(labelme_json, indent=4)
-        st.download_button("Download", json_str, file_name="data.json",  mime="application/json",
+        st.download_button("Predictions", json_str, file_name="data.json",  mime="application/json",
                            help='Download ring predictions in labelme format')
+
+        img = load_image(str(output_dir/"input.png"))
+        # Encode the image as PNG
+        _, img_encoded = cv2.imencode('.png', img)
+
+        # Convert the encoded image to bytes
+        img_bytes = img_encoded.tobytes()
+        st.download_button("Image", img_bytes, file_name="data.png", mime="image/png",
+                           help='Download image')
 
 
 
