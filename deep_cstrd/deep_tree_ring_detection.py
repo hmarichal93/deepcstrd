@@ -11,7 +11,8 @@ from deep_cstrd.model import deep_contour_detector
 
 
 def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_path, total_rotations,
-                      debug= False, debug_image_input_path=None, debug_output_dir=None, tile_size=0, prediction_map_threshold=0.2):
+                      debug= False, debug_image_input_path=None, debug_output_dir=None, tile_size=0,
+                      prediction_map_threshold=0.2, batch_size=1):
     """
     Method for delineating tree ring in wood cross-section images.
     @param im_in: segmented input image. Background must be white (255,255,255).
@@ -44,17 +45,18 @@ def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_p
                                            cy=cy, cx=cx, total_rotations=total_rotations, debug=debug,
                                            tile_size=tile_size,
                                            prediction_map_threshold = prediction_map_threshold,
-                                           alpha=alpha, mc=mc, nr=nr)
+                                           alpha=alpha, mc=mc, nr=nr, batch_size=batch_size)
     #conver im_pre to gray scale
+    im_in = cv2.cvtColor(im_pre, cv2.COLOR_RGB2BGR)
     im_pre = cv2.cvtColor(im_pre, cv2.COLOR_BGR2GRAY)
-    im_in = cv2.cvtColor(im_in, cv2.COLOR_RGB2BGR)
+
     # Line 5 Connect chains. Algorithm 7 in the supplementary material. Im_pre is used for debug purposes
     l_ch_c,  l_nodes_c = connect_chains(l_ch_s, cy, cx, nr, False, im_pre, debug_output_dir)
     # Line 6 Postprocessing chains. Algorithm 19 in the paper. Im_pre is used for debug purposes
     l_ch_p = postprocessing(l_ch_c, l_nodes_c, False, debug_output_dir, im_pre)
     # Line 7
     debug_execution_time = time.time() - to
-    l_rings = chain_2_labelme_json(l_ch_p, height, width, cy, cx, im_in, debug_image_input_path, debug_execution_time)
+    l_rings = chain_2_labelme_json(l_ch_p, im_pre.shape[0], im_pre.shape[1], cy, cx, im_in, debug_image_input_path, debug_execution_time)
 
     return im_in, im_pre, [], [], l_ch_s, l_ch_c, l_ch_p, l_rings
 

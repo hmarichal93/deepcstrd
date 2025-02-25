@@ -27,12 +27,13 @@ def get_minimum_bounding_box(image, offset=50):
     x_max = np.minimum(image.shape[1] - 1, x_max + offset)
 
     return y_min, y_max, x_min, x_max
-def crop_image(image_path, annotation_path, output_image_path, output_annotation_path, offset=50):
+def crop_image(image_path = None, annotation_path=None, output_image_path=None, output_annotation_path=None, offset=50, annotation=True):
     image = load_image(image_path)
     y_min, y_max, x_min, x_max = get_minimum_bounding_box(image, offset)
     new_image = image[y_min:y_max, x_min:x_max]
     write_image(output_image_path, new_image)
-
+    if not annotation:
+        return y_min,x_min,y_max,x_max
     ann = AL_LateWood_EarlyWood(annotation_path, output_annotation_path, image_path=None)
     shapes = ann.read()
     for shape in shapes:
@@ -43,7 +44,7 @@ def crop_image(image_path, annotation_path, output_image_path, output_annotation
     object.from_memory(shapes=shapes, imagePath=str(Path(image_path).name))
     json_content = object.to_dict()
     ann.write(json_content)
-    return
+    return y_min,x_min,y_max,x_max
 
 from shapely.geometry import Polygon
 from urudendro.drawing import Drawing

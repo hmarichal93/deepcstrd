@@ -5,7 +5,7 @@ import numpy as np
 from deep_cstrd.dataset import load_datasets
 from deep_cstrd.utils import save_batch_with_labels_as_subplots
 from deep_cstrd.losses import DiceLoss, Loss
-from deep_cstrd.model import segmentation_model
+from deep_cstrd.model import segmentation_model, RingSegmentationModel
 
 import segmentation_models_pytorch as smp
 import torch
@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
-                encoder, debug):
+                encoder, debug, dropout):
     # if Path(logs_dir).exists():
     #     os.system(f"rm -r {logs_dir}")
 
@@ -37,6 +37,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"model_type: {model_type}\n")
         f.write(f"encoder: {encoder}\n")
         f.write(f"debug: {debug}\n")
+        f.write(f"dropout: {dropout}\n")
 
     #load config file txt with numpy
     config = np.loadtxt(config_path, delimiter=":", dtype=str)
@@ -155,30 +156,10 @@ def eval_one_epoch(model, device, dataloader_val, criterion):
 
     return running_loss / len(dataloader_val)
 
-def load_model(model_type, model_dir, encoder="resnet34", channels=3):
+def load_model(model_type, model_dir, encoder="resnet34", channels=3, dropout=True):
     # Define the model
-    if model_type == segmentation_model.UNET:
-        print("UNET")
-        model = smp.Unet(
-            encoder_name=encoder,  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
-            encoder_weights="imagenet",  # Use pretrained weights on ImageNet
-            in_channels=channels,  # Number of input channels (e.g., 3 for RGB)
-            classes=1  # Number of output classes (e.g., 1 for binary segmentation)
-        )
-    elif model_type == segmentation_model.UNET_PLUS_PLUS:
-        print("UNET++")
-        model = smp.UnetPlusPlus(
-            encoder_name=encoder,  # Choose an encoder (backbone) like resnet34, efficientnet, etc.
-            encoder_weights="imagenet",  # Use pretrained weights on ImageNet
-            in_channels=channels,  # Number of input channels (e.g., 3 for RGB)
-            classes=1  # Number of output classes (e.g., 1 for binary segmentation)
-        )
-    elif model_type == segmentation_model.MASK_RCNN:
-        print("MASK RCNN")
-        model = torchvision.models.detection.mask_rcnn.MaskRCNN(backbone="resnet50", num_classes=1, pretrained=True)
 
-    else:
-        raise ValueError("Invalid model type")
+    model = RingSegmentationModel.load_architecture(model_type, encoder, channels=channels, dropout=dropout)
 
     # Ensure the model is moved to the GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -195,7 +176,7 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
                     tile_size=512, overlap=0.1, batch_size=4,
                     lr=0.001, number_of_epochs=100,
                     loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET,
-                    encoder="resnet34", channels=3, thickness=3, debug=False,
+                    encoder="resnet34", channels=3, thickness=3, debug=False, dropout = False,
                     min_running_loss = float("inf"), logs_dir="runs/unet_experiment"):
     import time
     timestamp = time.strftime("%Y%m%d-%H%M%S")
@@ -205,9 +186,11 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
     logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}_loss_{loss}"
     if augmentation:
         logs_name += "_augmentation"
+    if dropout:
+        logs_name += "_dropout"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
-                encoder, debug)
+                encoder, debug, dropout)
     return logs_dir, min_running_loss, 0
 
 
@@ -233,13 +216,17 @@ def training(args):
     # Initialize
     logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
                                                              number_of_epochs, loss, augmentation, model_type,
-                                                             encoder, channels, thickness, debug, logs_dir=logs_dir)
+                                                             encoder, channels, thickness, debug,  logs_dir=logs_dir)
 
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
                                                      thickness=thickness)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
+
     model, device = load_model(model_type, logs_dir, encoder, channels)
+    from torchinfo import summary
+    print(summary(model, input_size=(batch_size, channels, tile_size, tile_size)))
+
     optimizer, scheduler = configure_optimizer(model, lr, number_of_epochs)
     logger = Logger(logs_dir)
 

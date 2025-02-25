@@ -16,6 +16,7 @@ from urudendro.io import load_json
 from urudendro.remove_salient_object import remove_salient_object
 from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
 from cross_section_tree_ring_detection.cross_section_tree_ring_detection import saving_results
+from preparing_dataset.labelme_dataset import crop_image
 
 class DeepCSTRD_MODELS:
     pinus_v1 = "Pinus V1"
@@ -47,21 +48,22 @@ st.write("Upload an image and click to mark the pith of the wood disk.")
 #add check box to displya parameters
 st.sidebar.write("DeepCS-TRD Parameters")
 check = st.sidebar.checkbox("Show Parameters", value=False)
+config = load_json("./config/default.json")
 if check:
     # Adjustable parameters
-    alpha = st.slider("Angle α (degrees)", 0, 90, 30, 5)
+    alpha = st.slider("Angle α (degrees)", 0, 89, config.get("alpha"), 5)
     tile_size = st.selectbox("Tile Size", [0, 64, 128, 256, 512], index=3)
-    prediction_map_threshold = st.slider("Prediction Map Threshold", 0.0, 1.0, 0.2, 0.1)
-    total_rotations = st.slider("Total Rotations", 0, 8, 4, 1)
-    hsize = st.slider("Height", 0, 3500, 1504, 100)
-    wsize = st.slider("Width", 0, 3500, 1504, 100)
+    prediction_map_threshold = st.slider("Prediction Map Threshold", 0.0, 1.0, config.get("prediction_map_th"), 0.1)
+    total_rotations = st.slider("Total Rotations", 0, 8, config.get("total_rotations"), 1)
+    hsize = st.slider("Height", 0, 3500, config.get("hsize"), 100)
+    wsize = st.slider("Width", 0, 3500, config.get("wsize"), 100)
 else:
-    alpha = 30
-    tile_size = 256
-    prediction_map_threshold = 0.2
-    total_rotations = 4
-    hsize = 1504
-    wsize = 1504
+    alpha = config.get("alpha")
+    tile_size = config.get("tile_size")
+    prediction_map_threshold = config.get("prediction_map_th")
+    total_rotations = config.get("total_rotations")
+    hsize = config.get("hsize")
+    wsize = config.get("wsize")
 
 check_remove = st.sidebar.checkbox("Remove Background", value=True)
 st.divider()
@@ -101,6 +103,9 @@ if uploaded_file:
             cv2.imwrite(str(input_path), cv2.cvtColor(image_orig, cv2.COLOR_RGB2BGR))
             if check_remove:
                 remove_salient_object(input_path, input_path)
+                y_min, x_min, _, _ =crop_image(image_path=input_path,output_image_path=input_path, annotation=False)
+                cy -=y_min
+                cx -=x_min
             img_in  = load_image(input_path)
             nr = 360
             min_chain_length = 2
@@ -145,12 +150,24 @@ if (output_dir / current_image_path).exists():
             st.session_state["current_image_index"] = (st.session_state["current_image_index"] - 1) % len(
                 uploaded_files)
 
+        st.divider()
+        st.write("Download")
         #download button
         labelme_json = load_json(str(output_dir/"labelme.json"))
+        labelme_json["imagePath"] = "data.png"
         import json
         json_str = json.dumps(labelme_json, indent=4)
-        st.download_button("Download", json_str, file_name="data.json",  mime="application/json",
+        st.download_button("Predictions", json_str, file_name="data.json",  mime="application/json",
                            help='Download ring predictions in labelme format')
+
+        img = load_image(str(output_dir/"input.png"))
+        # Encode the image as PNG
+        _, img_encoded = cv2.imencode('.png', img)
+
+        # Convert the encoded image to bytes
+        img_bytes = img_encoded.tobytes()
+        st.download_button("Image", img_bytes, file_name="data.png", mime="image/png",
+                           help='Download image')
 
 
 

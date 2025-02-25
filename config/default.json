@@ -1,0 +1,8 @@
+{
+    "alpha": 45,
+    "tile_size": 256,
+    "prediction_map_th":0.2,
+    "total_rotations":0,
+    "hsize":1504,
+    "wsize":1504
+}
