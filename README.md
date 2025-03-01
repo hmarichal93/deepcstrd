@@ -1,5 +1,9 @@
 # DeepCS-TRD
-DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images of Pinus taeda and Gleditsia triacanthos.
+
+DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images. It substitutes the edge detection step of CS-TRD 
+by a deep-learning-based approach (U-Net), which allows the application of the method to different image domains: microscopy, scanner or smartphone acquired, and species (Pinus taeda, Gleditsia triachantos and Salix glauca). In addition, two publicly available annotated datasets are introduced to the community. 
+The proposed method outperforms state-of-the-art approaches in macro images (Pinus taeda and Gleditsia triacanthos) while showing slightly lower performance in microscopy images of Salix glauca. To our knowledge, this is the first work that studies automatic tree ring detection for such different species and acquisition conditions. Dataset is available [here](https://github.com/hmarichal93/deepcstrd/releases/tag/v1.0).
+
 ***
 ![Python Version](https://img.shields.io/badge/python-3.12-blue)
 
