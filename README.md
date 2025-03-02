@@ -21,13 +21,17 @@ streamlit run app.py
 </div>
 
 ***
-
-<img src="assets/deepCS-TRD_pinus2.png" alt="Example input image and detected tree rings"/>
+Delineation of tree rings in the forest capturing images with a smartphone camera. Images from the [Douglas fir dataset](https://annforsci.biomedcentral.com/articles/10.1186/s13595-022-01163-7).
+<img src="assets/deepCS-TRD_douglas_fir_c07c.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_douglas_fir_c08d.png" alt="Example input image and detected tree rings"/>
 
 ## More Examples 
 
 ***
-<details><summary>Pinus taeda</summary><img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
+<details><summary>Pinus taeda</summary>
+<img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_pinus2.png" alt="Example input image and detected tree rings"/>
+
 </details>
 
 <details><summary>Gleditsia triacanthos</summary><img src="assets/deepCS-TRD_gleditsia.png" alt="Example input image and detected tree rings"/>
