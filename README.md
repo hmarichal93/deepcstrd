@@ -80,6 +80,8 @@ python main.py inference
 ```bash
 python main.py inference --input input/F02c.png --cy 1264 --cx 1204  --output_dir ./output --root ./ --weights_path ./models/deep_cstrd/256_pinus_v1_1504.pth
 ```
+### Automatic pith detector
+Go to the [APD](https://github.com/hmarichal93/apd.git) repository and follow the instructions to install the automatic pith detector.
 
 ## Train
 
