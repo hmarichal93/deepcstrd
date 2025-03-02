@@ -24,6 +24,23 @@ streamlit run app.py
 
 <img src="assets/deepCS-TRD_pinus2.png" alt="Example input image and detected tree rings"/>
 
+## More Examples 
+
+***
+<details><summary>Pinus taeda</summary><img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
+</details>
+
+<details><summary>Gleditsia triacanthos</summary><img src="assets/deepCS-TRD_gleditsia.png" alt="Example input image and detected tree rings"/>
+</details>
+
+<details><summary>Douglas fir (sawmill)</summary>
+<img src="assets/deepCS-TRD_douglas_fir_c07c.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_douglas_fir_c008d.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_douglas_fir_c10d.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_douglas_fir_d05c.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_douglas_fir_d06c.png" alt="Example input image and detected tree rings"/>
+</details>
+
 ***
 ## Local Setup:
 ### Set conda environment 
@@ -88,22 +105,6 @@ python main.py evaluate --dataset_dir DATASET_PATH --results_path RESULT_PATH
 Where DATASET_PATH is the path to the dataset folder containing the images and the annotations, 
 and RESULT_PATH is the path to the directory where the results are going to be saved.
 
-## More Examples 
-
-***
-<details><summary>Pinus taeda</summary><img src="assets/deepCS-TRD_pinus.png" alt="Example input image and detected tree rings"/>
-</details>
-
-<details><summary>Gleditsia triacanthos</summary><img src="assets/deepCS-TRD_gleditsia.png" alt="Example input image and detected tree rings"/>
-</details>
-
-<details><summary>Douglas fir (sawmill)</summary>
-<img src="assets/deepCS-TRD_douglas_fir_c07c.png" alt="Example input image and detected tree rings"/>
-<img src="assets/deepCS-TRD_douglas_fir_c008d.png" alt="Example input image and detected tree rings"/>
-<img src="assets/deepCS-TRD_douglas_fir_c10d.png" alt="Example input image and detected tree rings"/>
-<img src="assets/deepCS-TRD_douglas_fir_d05c.png" alt="Example input image and detected tree rings"/>
-<img src="assets/deepCS-TRD_douglas_fir_d06c.png" alt="Example input image and detected tree rings"/>
-</details>
 
 
 ***
