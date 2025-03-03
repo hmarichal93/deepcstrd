@@ -50,7 +50,7 @@ class TRD:
 
 def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
          weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
-         method=TRD.CSTRD, total_rotations=4, tile_size=512, alpha=30):
+         method=TRD.CSTRD, total_rotations=4, tile_size=512, alpha=30, map_th=0.2):
 
     metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
     images_dir = Path(root_database) / "images/segmented"
@@ -96,8 +96,9 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
         elif method == TRD.DEEPCSTRD:
 
             print("DeepCSTRD")
-            command = f"python main.py inference --input {img_filename} --sigma {sigma} --cy {cy} --cx {cx}  --root ./ --output_dir" \
-                      f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"
+            command = f"python main.py inference --input {img_filename}  --cy {cy} --cx {cx}  --root ./ --output_dir" \
+                      f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"\
+                      f" --prediction_map_threshold {map_th}"
 
 
             print(command)
@@ -136,11 +137,12 @@ if __name__=='__main__':
                         help='Tile size for')
     parser.add_argument('--alpha', type=int, default=45,
                         help='Edge filtering parameter. Collinearity')
+    parser.add_argument('--map_th', type=float, default=0.2)
 
     args = parser.parse_args()
 
     main(args.dataset_dir, args.results_path, args.weights_path, args.method, args.total_rotations, args.tile_size,
-         args.alpha)
+         args.alpha, args.map_th)
 
 
 
