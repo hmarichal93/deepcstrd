@@ -36,8 +36,10 @@ def get_model_path(model_id,tile_size=256):
         return os.path.join(root_path, f"{tile_size}_gleditsia_1504.pth")
     elif model_id == DeepCSTRD_MODELS.salix:
         return os.path.join(root_path, f"{tile_size}_salix_1504.pth")
+
     elif model_id == DeepCSTRD_MODELS.all:
         return os.path.join(root_path, f"0_all_1504.pth")
+
     else:
         raise "models does not exist"
 
@@ -72,7 +74,7 @@ else:
 check_remove = st.sidebar.checkbox("Remove Background", value=True)
 st.divider()
 # Upload image
-uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"])
+uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "png", "jpeg"], help="Issues may raise with file size higher than 10MB")
 st.divider()
 if uploaded_file:
     image = Image.open(uploaded_file)
@@ -99,6 +101,7 @@ if uploaded_file:
         st.write(f"Last selected position in original scale: X = {cx}, Y = {cy}")
         model_size = st.radio("Select model size", ["0","256"], index=0, help="Select the model size to use. 0 means full resolution", horizontal=True)
         model_radio  = st.radio("Select a model", [DeepCSTRD_MODELS.pinus_v1, DeepCSTRD_MODELS.pinus_v2,  DeepCSTRD_MODELS.gleditsia, DeepCSTRD_MODELS.salix, DeepCSTRD_MODELS.all], horizontal=True)
+
         if st.button("Run"):
             st.warning("Running DeepCS-TRD...")
             os.system(f"rm -rf {output_dir}")
@@ -115,6 +118,8 @@ if uploaded_file:
             nr = 360
             min_chain_length = 2
             weights_path = get_model_path(model_radio, tile_size=model_size)
+
+            print("Weights path", weights_path)
 
             if hsize>0 and wsize>0:
                 img_in, cy, cx = resize(img_in, hsize, wsize, cy, cx)
