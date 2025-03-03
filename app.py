@@ -24,17 +24,20 @@ class DeepCSTRD_MODELS:
     pinus_v2 = "Pinus V2"
     gleditsia = "Gleditsia"
     salix = "Salix Glauca"
+    all = "generic"
 
-def get_model_path(model_id):
+def get_model_path(model_id,tile_size=256):
     root_path = "./models/deep_cstrd/"
     if model_id == DeepCSTRD_MODELS.pinus_v1:
-        return os.path.join(root_path, "256_pinus_v1_1504.pth")
+        return os.path.join(root_path, f"{tile_size}_pinus_v1_1504.pth")
     elif model_id == DeepCSTRD_MODELS.pinus_v2:
-        return os.path.join(root_path, "256_pinus_v2_1504.pth")
+        return os.path.join(root_path, f"{tile_size}_pinus_v2_1504.pth")
     elif model_id == DeepCSTRD_MODELS.gleditsia:
-        return os.path.join(root_path, "256_gleditsia_1504.pth")
+        return os.path.join(root_path, f"{tile_size}_gleditsia_1504.pth")
     elif model_id == DeepCSTRD_MODELS.salix:
-        return os.path.join(root_path, "256_salix_1504.pth")
+        return os.path.join(root_path, f"{tile_size}_salix_1504.pth")
+    elif model_id == DeepCSTRD_MODELS.all:
+        return os.path.join(root_path, f"0_all_1504.pth")
     else:
         raise "models does not exist"
 
@@ -94,7 +97,8 @@ if uploaded_file:
         cy = int(y / scale)
         st.session_state["coords"] = (cx, cy)
         st.write(f"Last selected position in original scale: X = {cx}, Y = {cy}")
-        model_radio  = st.radio("Select a model", [DeepCSTRD_MODELS.pinus_v1, DeepCSTRD_MODELS.pinus_v2,  DeepCSTRD_MODELS.gleditsia, DeepCSTRD_MODELS.salix], horizontal=True)
+        model_size = st.radio("Select model size", ["0","256"], index=0, help="Select the model size to use. 0 means full resolution", horizontal=True)
+        model_radio  = st.radio("Select a model", [DeepCSTRD_MODELS.pinus_v1, DeepCSTRD_MODELS.pinus_v2,  DeepCSTRD_MODELS.gleditsia, DeepCSTRD_MODELS.salix, DeepCSTRD_MODELS.all], horizontal=True)
         if st.button("Run"):
             st.warning("Running DeepCS-TRD...")
             os.system(f"rm -rf {output_dir}")
@@ -110,7 +114,7 @@ if uploaded_file:
             img_in  = load_image(input_path)
             nr = 360
             min_chain_length = 2
-            weights_path = get_model_path(model_radio)
+            weights_path = get_model_path(model_radio, tile_size=model_size)
 
             if hsize>0 and wsize>0:
                 img_in, cy, cx = resize(img_in, hsize, wsize, cy, cx)
