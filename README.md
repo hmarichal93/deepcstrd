@@ -23,7 +23,6 @@ streamlit run app.py
 ***
 Delineation of tree rings in the forest capturing images with a smartphone camera. Images from the [Douglas fir dataset](https://annforsci.biomedcentral.com/articles/10.1186/s13595-022-01163-7).
 <img src="assets/deepCS-TRD_douglas_fir_c07c.png" alt="Example input image and detected tree rings"/>
-<img src="assets/deepCS-TRD_douglas_fir_c08d.png" alt="Example input image and detected tree rings"/>
 
 ## More Examples 
 
@@ -38,8 +37,7 @@ Delineation of tree rings in the forest capturing images with a smartphone camer
 </details>
 
 <details><summary>Douglas fir (sawmill)</summary>
-<img src="assets/deepCS-TRD_douglas_fir_c07c.png" alt="Example input image and detected tree rings"/>
-<img src="assets/deepCS-TRD_douglas_fir_c008d.png" alt="Example input image and detected tree rings"/>
+<img src="assets/deepCS-TRD_douglas_fir_c08d.png" alt="Example input image and detected tree rings"/>
 <img src="assets/deepCS-TRD_douglas_fir_c10d.png" alt="Example input image and detected tree rings"/>
 <img src="assets/deepCS-TRD_douglas_fir_d05c.png" alt="Example input image and detected tree rings"/>
 <img src="assets/deepCS-TRD_douglas_fir_d06c.png" alt="Example input image and detected tree rings"/>
