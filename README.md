@@ -103,6 +103,8 @@ tensorboard --logdir=SAVE_DIR
     <img src="assets/tensorboard.png" alt="Example input image and detected tree rings"/>
 </div>
 
+Annotation were made using the [Labelme](https://github.com/wkentaro/labelme) tool marking tree ring boundaries as polylines.
+
 ## Evaluate 
 
 ```bash 

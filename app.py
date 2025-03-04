@@ -58,7 +58,7 @@ config = load_json("./config/default.json")
 if check:
     # Adjustable parameters
     alpha = st.slider("Angle α (degrees)", 0, 89, config.get("alpha"), 5)
-    tile_size = st.selectbox("Tile Size", [0, 64, 128, 256, 512], index=3)
+    tile_size = st.selectbox("Tile Size", [0, 64, 128, 256, 512], index=0)
     prediction_map_threshold = st.slider("Prediction Map Threshold", 0.0, 1.0, config.get("prediction_map_th"), 0.1)
     total_rotations = st.slider("Total Rotations", 0, 8, config.get("total_rotations"), 1)
     hsize = st.slider("Height", 0, 3500, config.get("hsize"), 100)
@@ -100,7 +100,7 @@ if uploaded_file:
         st.session_state["coords"] = (cx, cy)
         st.write(f"Last selected position in original scale: X = {cx}, Y = {cy}")
         model_size = st.radio("Select model size", ["0","256"], index=0, help="Select the model size to use. 0 means full resolution", horizontal=True)
-        model_radio  = st.radio("Select a model", [DeepCSTRD_MODELS.pinus_v1, DeepCSTRD_MODELS.pinus_v2,  DeepCSTRD_MODELS.gleditsia, DeepCSTRD_MODELS.salix, DeepCSTRD_MODELS.all], horizontal=True)
+        model_radio  = st.radio("Select a model", [DeepCSTRD_MODELS.pinus_v1, DeepCSTRD_MODELS.pinus_v2,  DeepCSTRD_MODELS.gleditsia, DeepCSTRD_MODELS.salix, DeepCSTRD_MODELS.all], horizontal=True, index=4)
 
         if st.button("Run"):
             st.warning("Running DeepCS-TRD...")
