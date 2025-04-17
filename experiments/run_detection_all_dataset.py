@@ -86,7 +86,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
             from cross_section_tree_ring_detection.utils import save_config, saving_results
 
             args = dict(cy=cy, cx=cx, sigma=3, th_low=5, th_high=20,
-                        height=0, width=0, alpha=30, nr=360,
+                        height=0, width=0, alpha=alpha, nr=360,
                         mc=2)
 
             im_in = load_image(str(img_filename))

@@ -117,7 +117,7 @@ def sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=False, debug_output_dir
         ch.visualize_selected_ch_and_chains_over_image_(
             l_ch_s, [], img=im_pre, filename=f'{debug_output_dir}/chains_origin.png')
 
-    #l_ch_s, l_nodes_s = remove_duplicated_elements(l_ch_s, l_nodes_s)
+    l_ch_s, l_nodes_s = remove_duplicated_elements(l_ch_s, l_nodes_s)
 
     if debug:
         ch.visualize_selected_ch_and_chains_over_image_(

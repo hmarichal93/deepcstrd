@@ -235,6 +235,9 @@ def deep_contour_detector(img,
     pred = pred / total_rotations
     if output_dir and debug:
         draw_pred_mask(pred, img, output_dir, cx, cy)
+        #invert pred to get the mask
+        pred_inv = (1 - pred) * 255
+        write_image(f"{output_dir}/mask.png", pred_inv)
 
     #binarize the mask
     pred = (pred > prediction_map_threshold).astype(np.uint8)  # Binarize the mask
