@@ -63,7 +63,6 @@ pip install -r requirements.txt
 git clone https://github.com/hmarichal93/cstrd_ipol.git
 cd cstrd_ipol/
 python setup.py install
-pip install -r requirements.txt
 cd .. 
 ```
 2) UruDendro
@@ -71,7 +70,6 @@ cd ..
 git clone https://github.com/hmarichal93/uruDendro.git
 cd uruDendro/
 python setup.py install
-pip install -r requirements.txt
 ```
 
 ### Test
