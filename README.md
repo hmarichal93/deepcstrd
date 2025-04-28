@@ -1,6 +1,6 @@
 # DeepCS-TRD
 
-**Accepted at International Conference on Image Analysis and Processing (ICIAP) 2025** 
+**Accepted at International Conference on Image Analysis and Processing (ICIAP) 2025** [Arxiv](https://doi.org/10.48550/arXiv.2504.16242)
 
 DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images. It substitutes the edge detection step of CS-TRD 
 by a deep-learning-based approach (U-Net), which allows the application of the method to different image domains: microscopy, scanner or smartphone acquired, and species (Pinus taeda, Gleditsia triachantos and Salix glauca). In addition, two publicly available annotated datasets are introduced to the community. 
