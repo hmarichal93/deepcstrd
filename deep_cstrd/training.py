@@ -156,7 +156,7 @@ def eval_one_epoch(model, device, dataloader_val, criterion):
 
     return running_loss / len(dataloader_val)
 
-def load_model(model_type, model_dir, encoder="resnet34", channels=3, dropout=True):
+def load_model(model_type, weights_path, encoder="resnet34", channels=3, dropout=True):
     # Define the model
 
     model = RingSegmentationModel.load_architecture(model_type, encoder, channels=channels, dropout=dropout)
@@ -166,8 +166,8 @@ def load_model(model_type, model_dir, encoder="resnet34", channels=3, dropout=Tr
     model = model.to(device)
     torch.cuda.empty_cache()
 
-    if Path(f"{model_dir}/best_model.pth").exists():
-        model.load_state_dict(torch.load(f"{model_dir}/best_model.pth"))
+    if Path(weights_path).exists():
+        model.load_state_dict(torch.load(weights_path))
 
     return model, device
 
@@ -177,17 +177,21 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
                     lr=0.001, number_of_epochs=100,
                     loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET,
                     encoder="resnet34", channels=3, thickness=3, debug=False, dropout = False,
-                    min_running_loss = float("inf"), logs_dir="runs/unet_experiment"):
+                    min_running_loss = float("inf"), weights_path=None,
+                    logs_dir="runs/unet_experiment"):
     import time
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     logs_dir = Path(logs_dir) / timestamp
     logs_dir.mkdir(parents=True, exist_ok=True)
     dataset_name = Path(dataset_root).name
-    logs_name = f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}_channels_{channels}_thickness_{thickness}_loss_{loss}"
+    logs_name = (f"{dataset_name}_epochs_{number_of_epochs}_tile_{int(tile_size)}_batch_{batch_size}_lr_{lr}_{encoder}"
+                 f"_channels_{channels}_thickness_{thickness}_loss_{loss}_model_type_{model_type}")
     if augmentation:
         logs_name += "_augmentation"
     if dropout:
         logs_name += "_dropout"
+    if weights_path:
+        logs_name += "_weights"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
                 encoder, debug, dropout)
@@ -212,18 +216,21 @@ def training(args):
     augmentation = args.augmentation
     model_type = args.model_type
     debug = args.debug
+    weights_path = args.weights_path
 
     # Initialize
     logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
                                                              number_of_epochs, loss, augmentation, model_type,
-                                                             encoder, channels, thickness, debug,  logs_dir=logs_dir)
+                                                             encoder, channels, thickness, debug, weights_path= weights_path,
+                                                             logs_dir=logs_dir)
 
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
                                                      thickness=thickness)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
 
-    model, device = load_model(model_type, logs_dir, encoder, channels)
+    model, device = load_model(model_type, f"{logs_dir}/best_model.pth" if weights_path is None else weights_path,
+                               encoder, channels)
     from torchinfo import summary
     print(summary(model, input_size=(batch_size, channels, tile_size, tile_size)))
 
@@ -285,11 +292,13 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser.add_argument("--augmentation", type=bool, default=False, help="Apply augmentation to the dataset")
     parser.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
-    parser.add_argument("--debug", type=bool, default=True, help="Debug mode")
+    parser.add_argument("--weights_path", type=str, default=None, help="Path to the weights file")
+    parser.add_argument("--debug", type=bool, default=False, help="Debug mode")
     args = parser.parse_args()
 
     training(dataset_root=Path(args.dataset_dir), logs_dir=args.logs_dir, augmentation= args.augmentation,
              model_type=args.model_type, debug=args.debug, batch_size=args.batch_size, tile_size=args.tile_size,
             number_of_epochs=args.number_of_epochs, overlap=args.overlap, lr=args.lr,
-            encoder= args.encoder, loss=args.loss, channels=args.input_channels, thickness=args.boundary_thickness)
+            encoder= args.encoder, loss=args.loss, channels=args.input_channels, thickness=args.boundary_thickness,
+             weights_path=args.weights_path)
 
