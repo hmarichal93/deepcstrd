@@ -40,11 +40,14 @@
       <a class="pill-button" href="https://huggingface.co/datasets/imageomics/TreeOfLife-10M">
         <img src="images/icons/huggingface.svg" /> Data
       </a>
+      <a class="pill-button" href="https://arxiv.org/abs/2504.16242">
+        <img src="images/icons/arxiv.svg" /> Paper
+      </a>
       <a class="pill-button" href="https://github.com/hmarichal93/deepcstrd">
         <img src="images/icons/github.svg" /> Code
       </a>
-      <a class="pill-button" href="https://arxiv.org/abs/2504.16242">
-        <img src="images/icons/arxiv.svg" /> Paper
+      <a class="pill-button" href="(https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=894688718&ref=main&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsEast">
+        <img src="https://github.com/codespaces/badge.svg" /> Codespaces
       </a>
     </p>
     <figure>
@@ -56,23 +59,19 @@
       </figcaption>
     </figure>
 
-    <h2 class="banded">BioCLIP</h2>
+    <h2 class="banded">DeepCS-TRD</h2>
 
     <p>
-      Images of the natural world are a super-abundant source of biological information.
-      There are many computational methods and tools, particularly computer vision, for extracting information from images.
-      <b>But</b>, existing methods are bespoke models for a specific task and are not adaptable
-      or extendable to new questions, contexts, and datasets.
+    We propose Deep CS-TRD, a new automatic algorithm for detecting tree rings in whole cross-sections. It substitutes
+    the edge detection step of CS-TRD by a deep-learning-based approach (U-Net), which allows the application of the
+    method to different image domains: microscopy, scanner or smartphone acquired, and species
+      (Pinus taeda, Gleditsia triachantos and Salix glauca).
     </p>
     <p>
-      We develop the first large-scale multimodal model, <a href="https://huggingface.co/imageomics/bioclip">BioCLIP</a>, for general biology questions on images.
-      We leverage the unique properties of biology as the the application domain for computer vision:
-      <ol>
-        <li>The abundance and variety of images about plants, animals, and fungi.</li>
-        <li>The availability of rich structured biological knowledge.</li>
-      </ol>
-      We curate and release TreeOfLife-10M (the largest and most diverse available dataset of biology images), train BioCLIP, rigorously <a href="#evaluation">benchmark</a> our approach on diverse fine-grained biology classification tasks, and find that BioCLIP consistently and substantially outperforms existing baselines (by 17% to 20% absolute).
-      <a href="#intrinsic">Intrinsic evaluation</a> further reveals that BioCLIP has learned a hierarchical representation conforming to the tree of life, shedding light on its strong generalizability.
+    Additionally, we introduce two publicly available datasets of annotated images to the community. The proposed method
+      outperforms state-of-the-art approaches in macro images (Pinus taeda and Gleditsia triacanthos) while showing
+      slightly lower performance in microscopy images of Salix glauca. To our knowledge, this is the first paper
+      that studies automatic tree ring detection for such different species and acquisition conditions.
     </p>
 
     <h3>Demo</h3>
