@@ -130,7 +130,35 @@
   </table>
 </div>
 
-    <h3>Evaluation Examples</h3>
+    <h3>Examples</h3>
+<div style="max-width: 600px; margin: 40px auto; position: relative; text-align: center;">
+  <img id="carouselImage" src="assets/deepCS-TRD_douglas_fir_c008d.png"
+       style="width: 100%; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+  <div style="margin-top: 10px;">
+    <button onclick="changeSlide(-1)">⬅️</button>
+    <button onclick="changeSlide(1)">➡️</button>
+  </div>
+</div>
+
+<script>
+  const images = [
+    'assets/deepCS-TRD_douglas_fir_c008d.png',
+    'assets/deepCS-TRD_douglas_fir_c07c.png',
+    'assets/deepCS-TRD_douglas_fir_c08d.png',
+    'assets/deepCS-TRD_douglas_fir_c10d.png',
+    'assets/deepCS-TRD_douglas_fir_d05c.png',
+    'assets/deepCS-TRD_douglas_fir_d06c.png',
+    'assets/deepCS-TRD_gleditsia.png',
+    'assets/deepCS-TRD_pinus.png',
+    'assets/deepCS-TRD_pinus2.png'
+  ];
+  let index = 0;
+
+  function changeSlide(direction) {
+    index = (index + direction + images.length) % images.length;
+    document.getElementById('carouselImage').src = images[index];
+  }
+</script>
 
     <h2 class="banded">Acknowledgements</h2>
     <p>
