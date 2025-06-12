@@ -56,7 +56,7 @@ class RingSegmentationModel:
 
         return model
 
-    def load_model(self, weights_path, encoder='resnet18'):
+    def load_model(self, weights_path, encoder='resnet34'):
 
         model = self.load_architecture(self.model_type, encoder, dropout=True)
 
