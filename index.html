@@ -51,11 +51,9 @@
       </a>
     </p>
     <figure>
-      <img srcset="" src="images/hook.svg" alt="" loading="lazy">
+      <img srcset="" src="images/pipeline.pdf" alt="" loading="lazy">
       <figcaption>
-        Figure 1: We use the CLIP objective (c) to train a ViT-B/16 on over 450K different class labels, all of which are taxonomic labels from the Tree of Life (a).
-        Because the text encoder is an <i>autoregressive</i> language model, the <i>order</i> representation can only depend on higher ranks like <i>class</i>, <i>phlyum</i> and <i>kingdom</i> (b).
-        This naturally leads to hierarchical representations for labels, helping the vision encoder learn image representations that are more aligned to the tree of life.
+        <b>DeepCS-TRD Tree-Ring detection pipeline </b>. (a) Input Disk image. (b) Deep Contour Detector. (c) spyder web model. (d) Tree-ring continuous curves.
       </figcaption>
     </figure>
 
@@ -73,10 +71,6 @@
       slightly lower performance in microscopy images of Salix glauca. To our knowledge, this is the first paper
       that studies automatic tree ring detection for such different species and acquisition conditions.
     </p>
-
-    <h3>Demo</h3>
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/5.33.0/gradio.js"></script>
-    <gradio-app src="https://imageomics-bioclip-demo.hf.space"></gradio-app>
 
     <h2 class="banded" id="evaluation">Experiments</h2>
     <p>
