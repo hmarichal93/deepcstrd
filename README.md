@@ -1,4 +1,4 @@
-# DeepCS-TRD
+# DeepCS-TRD, Deep Learning-based Cross-Section Tree Ring Detector
 
 **Accepted at International Conference on Image Analysis and Processing (ICIAP) 2025** 
 
