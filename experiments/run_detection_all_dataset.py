@@ -48,7 +48,7 @@ class TRD:
     INBD= 2
     DEEPCSTRD=3
 
-def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
+def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pinus_v1/test",  results_path="/data/maestria/resultados/cstrd_merge",
          weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
          method=TRD.CSTRD, total_rotations=4, tile_size=512, alpha=30, map_th=0.2):
 
@@ -87,7 +87,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 
             args = dict(cy=cy, cx=cx, sigma=3, th_low=5, th_high=20,
                         height=0, width=0, alpha=alpha, nr=360,
-                        mc=2)
+                        mc=2, debug_output_dir=img_res_dir)
 
             im_in = load_image(str(img_filename))
             res = TreeRingDetection(im_in, **args)
@@ -123,9 +123,9 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Train a U-Net model for image segmentation')
-    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/test",
+    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd_datasets_train/pinus_v1/test",
                         help='Path to the dataset directory')
-    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
+    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/cstrd_merge_ipol",
                         help='Path to the results directory')
     parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
                         help='Path to the weights directory')
