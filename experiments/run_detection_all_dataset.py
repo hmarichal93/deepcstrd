@@ -98,7 +98,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pi
             print("DeepCSTRD")
             command = f"python main.py inference --input {img_filename}  --cy {cy} --cx {cx}  --root ./ --output_dir" \
                       f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"\
-                      f" --prediction_map_threshold {map_th}"
+                      f" --prediction_map_threshold {map_th} --encoder resnet18"
 
 
             print(command)
@@ -123,13 +123,13 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pi
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Train a U-Net model for image segmentation')
-    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd_datasets_train/pinus_v1/test",
+    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/icprs-25/UruDendro4_1504/test",
                         help='Path to the dataset directory')
-    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/cstrd_merge_ipol",
+    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/icprs-25/experiments/deep_cstrd_ipol_accepted",
                         help='Path to the results directory')
-    parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
+    parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/models/deep_cstrd/0_pinus_v1_1504.pth",
                         help='Path to the weights directory')
-    parser.add_argument('--method', type=int, default=TRD.CSTRD,
+    parser.add_argument('--method', type=int, default=TRD.DEEPCSTRD,
                         help='Method to use for tree ring detection. 1: CSTRD, 2: INBD, 3: DEEPCSTRD')
     parser.add_argument('--total_rotations', type=int, default=4,
                         help='Number of rotations to use for deepcstrd')
