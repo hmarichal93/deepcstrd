@@ -52,7 +52,7 @@ def inference(args):
     res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.hsize, args.wsize,
                             args.edge_th, args.nr, args.min_chain_length, args.weights_path, args.total_rotations,
                             args.debug, args.input, args.output_dir, args.tile_size, args.prediction_map_threshold,
-                            args.batch_size)
+                            args.batch_size, encoder=args.encoder)
     tf = time.time() - to
     print(f"Execution time: {tf}")
     saving_results(res, args.output_dir, args.save_imgs)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     parser_inference = subparsers.add_parser('inference', help='Train a network')
     parser_inference.add_argument("--input", type=str, required=False,default="input/F02c.png")
     parser_inference.add_argument("--weights_path", type=str, required=False,
-                        default="./models/deep_cstrd/256_pinus_v1_1504.pth")
+                        default="./models/deep_cstrd/0_pinus_v1_1504.pth")
     parser_inference.add_argument("--cy", type=int, required=False, default=1264)
     parser_inference.add_argument("--cx", type=int, required=False, default=1204)
     parser_inference.add_argument("--root", type=str, required=False, default="./")
@@ -81,8 +81,9 @@ if __name__ == "__main__":
     parser_inference.add_argument("--min_chain_length", type=int, required=False, default=2)
     parser_inference.add_argument("--total_rotations", type=int, required=False, default=4)
     parser_inference.add_argument('--prediction_map_threshold', type=float, required=False, default=0.2)
-    parser_inference.add_argument('--tile_size', type=int, required=False, default=256)
+    parser_inference.add_argument('--tile_size', type=int, required=False, default=0)
     parser_inference.add_argument('--batch_size', type=int, required=False, default=1)
+    parser_inference.add_argument('--encoder', type=str, default="resnet34", help='Encoder to use')
     parser_inference.add_argument("--debug", type=int, required=False)
     parser_inference.set_defaults(func=inference)
 
@@ -91,7 +92,7 @@ if __name__ == "__main__":
                         help='Path to the dataset directory')
     parser_train.add_argument('--logs_dir', type=str, default="runs/pinus_v1_40_train_12_val")
     parser_train.add_argument('--batch_size', type=int, default=4, help='Batch size')
-    parser_train.add_argument('--tile_size', type=int, default=256, help='Tile size')
+    parser_train.add_argument('--tile_size', type=int, default=0, help='Tile size')
     parser_train.add_argument('--step_size', type=int, default=20, help='Step size for the learning rate scheduler')
     parser_train.add_argument('--number_of_epochs', type=int, default=40, help='Number of epochs')
     parser_train.add_argument('--overlap', type=float, default=0.1, help='Overlap between tiles')
@@ -105,6 +106,7 @@ if __name__ == "__main__":
     parser_train.add_argument("--config", type=str, default="config.json", help="Path to the config file")
     parser_train.add_argument("--augmentation", type=bool, default=True, help="Apply augmentation to the dataset")
     parser_train.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
+    parser_train.add_argument("--weights_path", type=str, default=None, help="Path to the weights file")
     parser_train.add_argument("--debug", type=bool, default=True, help="Debug mode")
     parser_train.set_defaults(func=training)
 

@@ -21,12 +21,12 @@ class segmentation_model:
 
 class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
-                 tile_size=512, overlap=0.1, output_dir=None, model_type=segmentation_model.UNET):
+                 tile_size=512, overlap=0.1, output_dir=None, model_type=segmentation_model.UNET, encoder='resnet18'):
         self.model_type = model_type
         self.tile_size = tile_size
         self.overlap = overlap
         self.output_dir = output_dir
-        self.model = self.load_model(weights_path)
+        self.model = self.load_model(weights_path, encoder)
         self.model.eval()
 
     @staticmethod
@@ -202,13 +202,14 @@ def from_prediction_mask_to_curves(pred, model, output_dir=None, debug=False) ->
 def deep_contour_detector(img,
                           weights_path= "models/deep_cstrd/256_pinus_v1_1504.pth",
                           output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0,
-                          prediction_map_threshold=0.2, alpha=30, mc=2, nr=360, batch_size=1):
+                          prediction_map_threshold=0.2, alpha=30, mc=2, nr=360, batch_size=1,
+                          encoder='resnet18'):
 
     h, w = img.shape[:2]
     if h % 32 != 0 or w % 32 != 0:
         img = padding_image(img, 32)
 
-    model = RingSegmentationModel(weights_path, tile_size=tile_size)
+    model = RingSegmentationModel(weights_path,encoder=encoder, tile_size=tile_size)
 
     if total_rotations < 1:
         total_rotations = 1
@@ -235,6 +236,9 @@ def deep_contour_detector(img,
     pred = pred / total_rotations
     if output_dir and debug:
         draw_pred_mask(pred, img, output_dir, cx, cy)
+        #invert pred to get the mask
+        pred_inv = (1 - pred) * 255
+        write_image(f"{output_dir}/mask.png", pred_inv)
 
     #binarize the mask
     pred = (pred > prediction_map_threshold).astype(np.uint8)  # Binarize the mask
@@ -249,9 +253,9 @@ def deep_contour_detector(img,
     # Line 3 Edge filtering module.
     l_ch_f = filter_edges(m_ch_e, cy, cx, gy, gx, alpha, im_pre)
     # Line 4 Sampling edges.
-    l_ch_s, l_nodes_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug)
+    l_ch_s = sampling_edges(l_ch_f, cy, cx, im_pre, mc, nr, debug=debug)
 
-    return l_ch_s, l_nodes_s
+    return l_ch_s
 
 def draw_normals(img, m_ch_e, gx, gy, output_dir):
     debug_image = img.copy()

@@ -60,8 +60,8 @@ def save_labelmap_image(labelmap, outf):
 def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v1/test",
                     results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/inbd/inference/inbd_results/models_/inbd_urudendro_labels"):
     metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
-    images_dir = Path(root_database) / "images/segmented"
-    gt_dir = Path(root_database) / "annotations/labelme/images"
+    images_dir = Path(root_database).parent / "images/segmented"
+    gt_dir = Path(root_database).parent / "annotations/labelme/images"
     results_path = Path(results_path)
     results_path.mkdir(exist_ok=True)
 
