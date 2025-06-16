@@ -48,7 +48,7 @@ class TRD:
     INBD= 2
     DEEPCSTRD=3
 
-def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
+def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pinus_v1/test",  results_path="/data/maestria/resultados/cstrd_merge",
          weights_path="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
          method=TRD.CSTRD, total_rotations=4, tile_size=512, alpha=30, map_th=0.2):
 
@@ -87,7 +87,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 
             args = dict(cy=cy, cx=cx, sigma=3, th_low=5, th_high=20,
                         height=0, width=0, alpha=alpha, nr=360,
-                        mc=2)
+                        mc=2, debug_output_dir=img_res_dir)
 
             im_in = load_image(str(img_filename))
             res = TreeRingDetection(im_in, **args)
@@ -98,7 +98,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
             print("DeepCSTRD")
             command = f"python main.py inference --input {img_filename}  --cy {cy} --cx {cx}  --root ./ --output_dir" \
                       f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"\
-                      f" --prediction_map_threshold {map_th}"
+                      f" --prediction_map_threshold {map_th} --encoder resnet18"
 
 
             print(command)
@@ -123,13 +123,13 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd/pinus_v1/test",  
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Train a U-Net model for image segmentation')
-    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/deep_cstrd/pinus_v1/test",
+    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/icprs-25/UruDendro4_1504/test",
                         help='Path to the dataset directory')
-    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/deep_cstrd_pinus_v1_test/deep_cstrd",
+    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/icprs-25/experiments/deep_cstrd_ipol_accepted",
                         help='Path to the results directory')
-    parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/pinus_v1_40_train_12_val/epoch_20/latest_model.pth",
+    parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/models/deep_cstrd/0_pinus_v1_1504.pth",
                         help='Path to the weights directory')
-    parser.add_argument('--method', type=int, default=TRD.CSTRD,
+    parser.add_argument('--method', type=int, default=TRD.DEEPCSTRD,
                         help='Method to use for tree ring detection. 1: CSTRD, 2: INBD, 3: DEEPCSTRD')
     parser.add_argument('--total_rotations', type=int, default=4,
                         help='Number of rotations to use for deepcstrd')
