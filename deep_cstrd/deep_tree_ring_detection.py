@@ -48,7 +48,7 @@ def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_p
                                            alpha=alpha, mc=mc, nr=nr, batch_size=batch_size, encoder=encoder
                                    )
     #conver im_pre to gray scale
-    im_in = cv2.cvtColor(im_pre, cv2.COLOR_RGB2BGR)
+    im_in = cv2.cvtColor(im_in, cv2.COLOR_RGB2BGR)
     im_pre = cv2.cvtColor(im_pre, cv2.COLOR_BGR2GRAY)
 
     # Line 5 Connect chains. Algorithm 7 in the supplementary material. Im_pre is used for debug purposes

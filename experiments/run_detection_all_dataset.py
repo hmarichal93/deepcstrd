@@ -111,7 +111,8 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pi
             args = dict(cy=cy, cx=cx, height=dim_size, width=dim_size, alpha=alpha, nr=360,
                         mc=2, prediction_map_threshold=map_th,weights_path=weights_path,
                         total_rotations=total_rotations,
-                        tile_size=tile_size, batch_size=1)
+                        tile_size=tile_size, batch_size=1,
+                        debug_output_dir=img_res_dir, debug=False, encoder='resnet34')
 
             im_in = load_image(str(img_filename))
             res = DeepTreeRingDetection(im_in, **args)
