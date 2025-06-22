@@ -7,9 +7,11 @@ by a deep-learning-based approach (U-Net), which allows the application of the m
 The proposed method outperforms state-of-the-art approaches in macro images (Pinus taeda and Gleditsia triacanthos) while showing slightly lower performance in microscopy images of Salix glauca. To our knowledge, this is the first work that studies automatic tree ring detection for such different species and acquisition conditions. Dataset is available [here](https://github.com/hmarichal93/deepcstrd/releases/tag/v1.0).
 
 ***
-![Python Version](https://img.shields.io/badge/python-3.12-blue)
-
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?skip_quickstart=true&machine=basicLinux32gb&repo=894688718&ref=main&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=UsEast)
+
+<img alt="Build Badge" src="https://img.shields.io/badge/python-3.12-blue" />
+<img alt="Download Badge" src="https://img.shields.io/github/downloads/hmarichal93/deepcstrd/latest/total?color=amber&label=downloads" />
+
 
 Run app 
 ```bash
