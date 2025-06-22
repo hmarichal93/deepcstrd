@@ -77,7 +77,7 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pi
         sigma = 3
         if (img_res_dir / "labelme.json").exists():
             continue
-
+        dim_size = 1504
         to = time()
         if method == TRD.CSTRD:
             print("CSTRD")
@@ -86,23 +86,38 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pi
             from cross_section_tree_ring_detection.utils import save_config, saving_results
 
             args = dict(cy=cy, cx=cx, sigma=3, th_low=5, th_high=20,
-                        height=0, width=0, alpha=alpha, nr=360,
-                        mc=2, debug_output_dir=img_res_dir)
+                        height=dim_size, width=dim_size, alpha=alpha, nr=360,
+                        mc=2)
 
             im_in = load_image(str(img_filename))
             res = TreeRingDetection(im_in, **args)
             saving_results(res, img_res_dir, 1)
 
         elif method == TRD.DEEPCSTRD:
-
             print("DeepCSTRD")
-            command = f"python main.py inference --input {img_filename}  --cy {cy} --cx {cx}  --root ./ --output_dir" \
-                      f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"\
-                      f" --prediction_map_threshold {map_th} --encoder resnet18"
+
+            # command = f"python main.py inference --input {img_filename}  --cy {cy} --cx {cx}  --root ./ --output_dir" \
+            #           f" {img_res_dir}  --weights_path {weights_path} --total_rotations {total_rotations} --tile_size {tile_size} --edge_th {alpha}"\
+            #           f" --prediction_map_threshold {map_th}"
+            #
+            #
+            # print(command)
+            # os.system(command)
+            from deep_cstrd.deep_tree_ring_detection import DeepTreeRingDetection
+            from urudendro.image import load_image
+            from cross_section_tree_ring_detection.utils import saving_results
 
 
-            print(command)
-            os.system(command)
+            args = dict(cy=cy, cx=cx, height=dim_size, width=dim_size, alpha=alpha, nr=360,
+                        mc=2, prediction_map_threshold=map_th,weights_path=weights_path,
+                        total_rotations=total_rotations,
+                        tile_size=tile_size, batch_size=1,
+                        debug_output_dir=img_res_dir, debug=False, encoder='resnet34')
+
+            im_in = load_image(str(img_filename))
+            res = DeepTreeRingDetection(im_in, **args)
+            saving_results(res, img_res_dir, 1)
+
 
         else:
             print("Method not implemented")
@@ -123,17 +138,17 @@ def main(root_database = "/data/maestria/resultados/deep_cstrd_datasets_train/pi
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Train a U-Net model for image segmentation')
-    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/icprs-25/UruDendro4_1504/test",
+    parser.add_argument('--dataset_dir', type=str, default="/data/maestria/resultados/icprs-25/UruDendro4/test",
                         help='Path to the dataset directory')
-    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/icprs-25/experiments/deep_cstrd_ipol_accepted",
+    parser.add_argument('--results_path', type=str, default="/data/maestria/resultados/icprs-25/experiments/deep_cstrd_ipol_uru4/20250609-143227",
                         help='Path to the results directory')
-    parser.add_argument('--weights_path', type=str, default="/home/henry/Documents/repo/fing/cores_tree_ring_detection/models/deep_cstrd/0_pinus_v1_1504.pth",
+    parser.add_argument('--weights_path', type=str, default="/data/maestria/resultados/icprs-25/experiments/deep_cstrd_models/uru4/runs/20250609-143227/UruDendro4_1504_epochs_100_tile_0_batch_8_lr_0.001_resnet34_channels_3_thickness_3_loss_0_model_type_1_augmentation/best_model.pth",
                         help='Path to the weights directory')
     parser.add_argument('--method', type=int, default=TRD.DEEPCSTRD,
                         help='Method to use for tree ring detection. 1: CSTRD, 2: INBD, 3: DEEPCSTRD')
     parser.add_argument('--total_rotations', type=int, default=4,
                         help='Number of rotations to use for deepcstrd')
-    parser.add_argument('--tile_size', type=int, default=512,
+    parser.add_argument('--tile_size', type=int, default=0,
                         help='Tile size for')
     parser.add_argument('--alpha', type=int, default=45,
                         help='Edge filtering parameter. Collinearity')

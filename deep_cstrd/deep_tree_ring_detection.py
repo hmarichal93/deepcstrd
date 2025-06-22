@@ -48,7 +48,7 @@ def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_p
                                            alpha=alpha, mc=mc, nr=nr, batch_size=batch_size, encoder=encoder
                                    )
     #conver im_pre to gray scale
-    im_in = cv2.cvtColor(im_pre, cv2.COLOR_RGB2BGR)
+    im_in = cv2.cvtColor(im_in, cv2.COLOR_RGB2BGR)
     im_pre = cv2.cvtColor(im_pre, cv2.COLOR_BGR2GRAY)
 
     # Line 5 Connect chains. Algorithm 7 in the supplementary material. Im_pre is used for debug purposes
@@ -57,7 +57,7 @@ def DeepTreeRingDetection(im_in, cy, cx, height, width, alpha, nr, mc, weights_p
     l_ch_p = postprocessing(l_ch_c, False, debug_output_dir, im_pre)
     # Line 7
     debug_execution_time = time.time() - to
-    l_rings = chain_2_labelme_json(l_ch_p, im_in.shape[0], im_in.shape[1], cy, cx, im_in, debug_image_input_path, debug_execution_time)
+    l_rings = chain_2_labelme_json(l_ch_p, im_pre.shape[0], im_pre.shape[1], cy, cx, im_in, debug_image_input_path, debug_execution_time)
 
     return im_in, im_pre, [], [], l_ch_s, l_ch_c, l_ch_p, l_rings
 
