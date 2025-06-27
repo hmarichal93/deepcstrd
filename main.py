@@ -107,7 +107,7 @@ if __name__ == "__main__":
     parser_train.add_argument("--augmentation", type=bool, default=True, help="Apply augmentation to the dataset")
     parser_train.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
     parser_train.add_argument("--weights_path", type=str, default=None, help="Path to the weights file")
-    parser_train.add_argument("--debug", type=bool, default=True, help="Debug mode")
+    parser_train.add_argument("--debug", type=bool, default=False, help="Debug mode")
     parser_train.set_defaults(func=training)
 
     parser_evaluate = subparsers.add_parser('evaluate', help='Evaluate the tree ring detection pipeline')
