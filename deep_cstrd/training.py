@@ -231,8 +231,8 @@ def training(args):
 
     model, device = load_model(model_type, f"{logs_dir}/best_model.pth" if weights_path is None else weights_path,
                                encoder, channels)
-    from torchinfo import summary
-    print(summary(model, input_size=(batch_size, channels, tile_size, tile_size)))
+    #from torchinfo import summary
+    #print(summary(model, input_size=(batch_size, channels, tile_size, tile_size)))
 
     optimizer, scheduler = configure_optimizer(model, lr, number_of_epochs)
     logger = Logger(logs_dir)
