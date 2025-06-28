@@ -225,7 +225,7 @@ def training(args):
                                                              logs_dir=logs_dir)
 
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
-                                                     thickness=thickness)
+                                                     thickness=thickness, test_size=args.test_size)
 
     criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
 

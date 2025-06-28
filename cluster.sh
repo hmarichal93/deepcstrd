@@ -26,6 +26,7 @@ NODE_RESULTADOS_DIR=$NODE_DATASET_DIR/results
 EPOCHS=$5
 BATCHSIZE=8
 TILESIZE=0
+TEST_SIZE=$6
 
 # Función para verificar el resultado de un comando
 check_command_result() {
@@ -48,7 +49,7 @@ cd $ROOT_DIR
 for i in {1..5}; do
     python main.py train --dataset_dir $NODE_DATASET_DIR/$DATASET_NAME --logs_dir $NODE_RESULTADOS_DIR \
         --batch_size $BATCHSIZE --tile_size $TILESIZE --encoder resnet18 --number_of_epochs $EPOCHS \
-        --boundary_thickness 3 --augmentation 1
+        --boundary_thickness 3 --augmentation 1 --test_size $TEST_SIZE
 
     check_command_result mkdir -p $HOME_RESULTADOS_DIR
     check_command_result cp -r $NODE_RESULTADOS_DIR/* $HOME_RESULTADOS_DIR

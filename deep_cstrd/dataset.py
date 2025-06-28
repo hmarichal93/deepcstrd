@@ -471,12 +471,24 @@ def split_dataset(dataset_root:Path, val_size=0.2, test_size=0.2):
 
 
     return
-def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False, num_workers=4, thickness=3):
+
+def empty_dataset(dataset_root:Path):
+    if dataset_root.exists():
+        import os
+        os.system(f"rm -r {dataset_root}")
+    dataset_root.mkdir(parents=True, exist_ok=True)
+
+
+def load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation = False, num_workers=4, thickness=3, test_size=0.2):
     train_dataset_dir = dataset_root / "train"
     val_dataset_dir = dataset_root / "val"
     test_dataset_dir = dataset_root / "test"
-    if not train_dataset_dir.exists() or not val_dataset_dir.exists() or not test_dataset_dir.exists():
-        split_dataset(dataset_root, val_size=0.2, test_size=0.2)
+
+    empty_dataset(train_dataset_dir)
+    empty_dataset(val_dataset_dir)
+    empty_dataset(test_dataset_dir)
+
+    split_dataset(dataset_root, val_size=0.2, test_size=test_size)
 
     dataset_train = OverlapTileDataset(Path(train_dataset_dir), tile_size=tile_size, overlap=overlap, debug=True,
                                        augmentation=augmentation, thickness=thickness)
