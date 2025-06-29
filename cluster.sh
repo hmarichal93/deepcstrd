@@ -29,6 +29,7 @@ TEST_SIZE=$6
 BATCHSIZE=$7
 # Función para verificar el resultado de un comando
 check_command_result() {
+    echo 'Executing: $@'
     "$@"
     if [ $? -ne 0 ]; then
         echo "Error: El comando falló."
@@ -46,7 +47,7 @@ check_command_result cp -r $HOME_DATASET_DIR $NODE_DATASET_DIR
 # Entrenar el modelo
 cd $ROOT_DIR
 for i in {1..5}; do
-    python main.py train --dataset_dir $NODE_DATASET_DIR/$DATASET_NAME --logs_dir $NODE_RESULTADOS_DIR \
+    check_command_result python main.py train --dataset_dir $NODE_DATASET_DIR/$DATASET_NAME --logs_dir $NODE_RESULTADOS_DIR \
         --batch_size $BATCHSIZE --tile_size $TILESIZE --encoder resnet18 --number_of_epochs $EPOCHS \
         --boundary_thickness 3 --augmentation 1 --test_size $TEST_SIZE
 
