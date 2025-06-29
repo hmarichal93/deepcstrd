@@ -227,8 +227,8 @@ def training(args):
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
                                                      thickness=thickness, test_size=args.test_size)
 
-    criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
-
+    #criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
+    criterion = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True) if loss == Loss.dice else nn.BCEWithLogitsLoss()
     model, device = load_model(model_type, f"{logs_dir}/best_model.pth" if weights_path is None else weights_path,
                                encoder, channels)
     #from torchinfo import summary
