@@ -29,7 +29,7 @@ TEST_SIZE=$6
 BATCHSIZE=$7
 # Función para verificar el resultado de un comando
 check_command_result() {
-    echo 'Executing: $@'
+    echo "Executing: $@"
     "$@"
     if [ $? -ne 0 ]; then
         echo "Error: El comando falló."
