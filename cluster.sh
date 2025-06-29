@@ -18,7 +18,7 @@ conda activate deep_cstrd
 
 # Variables
 ROOT_DIR=$1
-HOME_DATASET_DIR=$2
+HOME_DATASET_DIR=$2/$4
 HOME_RESULTADOS_DIR=$3
 DATASET_NAME=$4
 NODE_DATASET_DIR=/scratch/henry.marichal/
