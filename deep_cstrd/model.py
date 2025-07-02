@@ -18,6 +18,7 @@ class segmentation_model:
     UNET = 1
     UNET_PLUS_PLUS = 2
     MASK_RCNN = 3
+    INBD_UNET = 4
 
 class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
@@ -38,7 +39,9 @@ class RingSegmentationModel:
                 encoder_weights="imagenet",
                 in_channels=channels,
                 classes=1,
+                encoder_depth=5
                 #aux_params=dict(dropout=0.3, classes=1) if dropout else None
+
             )
         elif model_type == segmentation_model.UNET_PLUS_PLUS:
             model = smp.UnetPlusPlus(
@@ -50,6 +53,11 @@ class RingSegmentationModel:
             )
         elif model_type == segmentation_model.MASK_RCNN:
             model = torchvision.models.detection.mask_rcnn.MaskRCNN(backbone="resnet50", num_classes=1, pretrained=True)
+
+        elif model_type == segmentation_model.INBD_UNET:
+            print('INBD UNet')
+            from deep_cstrd.inbd_models import UNet as INBD_UNet
+            model = INBD_UNet()
 
         else:
             raise ValueError("Invalid model type")
