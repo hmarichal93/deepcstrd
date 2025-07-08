@@ -23,7 +23,7 @@ class segmentation_model:
 class RingSegmentationModel:
     def __init__(self, weights_path = "/home/henry/Documents/repo/fing/cores_tree_ring_detection/src/runs/unet_experiment/latest_model.pth" ,
                  tile_size=512, overlap=0.1, output_dir=None, model_type=segmentation_model.UNET, encoder='resnet18'):
-        self.model_type = model_type
+        self.model_type = int(model_type)
         self.tile_size = tile_size
         self.overlap = overlap
         self.output_dir = output_dir
@@ -31,7 +31,7 @@ class RingSegmentationModel:
         self.model.eval()
 
     @staticmethod
-    def load_architecture(model_type, encoder='resnet18', channels=3, dropout=False):
+    def load_architecture(model_type, encoder='resnet18', channels=3, dropout=False, freeze_encoder=True):
         # Load your model here
         if model_type == segmentation_model.UNET:
             model = smp.Unet(
@@ -43,6 +43,11 @@ class RingSegmentationModel:
                 #aux_params=dict(dropout=0.3, classes=1) if dropout else None
 
             )
+            if freeze_encoder:
+                #freeze the encoder
+                for param in model.encoder.parameters():
+                    param.requires_grad = False
+
         elif model_type == segmentation_model.UNET_PLUS_PLUS:
             model = smp.UnetPlusPlus(
                 encoder_name=encoder,
@@ -211,13 +216,14 @@ def deep_contour_detector(img,
                           weights_path= "models/deep_cstrd/256_pinus_v1_1504.pth",
                           output_dir=None, cy=None, cx=None, debug=False, total_rotations=5, tile_size=0,
                           prediction_map_threshold=0.2, alpha=30, mc=2, nr=360, batch_size=1,
-                          encoder='resnet18'):
+                          encoder='resnet18', model_type=segmentation_model.UNET):
 
     h, w = img.shape[:2]
     if h % 32 != 0 or w % 32 != 0:
         img = padding_image(img, 32)
 
-    model = RingSegmentationModel(weights_path,encoder=encoder, tile_size=tile_size)
+    model = RingSegmentationModel(weights_path,encoder=encoder, tile_size=tile_size,
+                                  model_type=model_type)
 
     if total_rotations < 1:
         total_rotations = 1
