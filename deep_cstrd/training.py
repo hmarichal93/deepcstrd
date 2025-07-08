@@ -167,6 +167,7 @@ def load_model(model_type, weights_path, encoder="resnet34", channels=3, dropout
     torch.cuda.empty_cache()
 
     if Path(weights_path).exists():
+        print(f"Loading weights from {weights_path}")
         model.load_state_dict(torch.load(weights_path))
 
     return model, device
