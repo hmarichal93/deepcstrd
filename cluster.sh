@@ -50,7 +50,7 @@ cd $ROOT_DIR
 for i in {1..5}; do
     check_command_result python main.py train --dataset_dir $NODE_DATASET_DIR/$DATASET_NAME --logs_dir $NODE_RESULTADOS_DIR \
         --batch_size $BATCHSIZE --tile_size $TILESIZE --encoder resnet18 --number_of_epochs $EPOCHS \
-        --boundary_thickness 3 --augmentation 1 --test_size $TEST_SIZE --model_type $MODEL_TYPE
+        --boundary_thickness 3 --augmentation 1 --test_size $TEST_SIZE --model_type $MODEL_TYPE --freeze_encoder 1
     check_command_result mkdir -p $HOME_RESULTADOS_DIR
     check_command_result cp -r $NODE_RESULTADOS_DIR/* $HOME_RESULTADOS_DIR
 done
