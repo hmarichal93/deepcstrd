@@ -18,7 +18,8 @@ conda activate deep_cstrd
 
 # Variables
 ROOT_DIR=$1
-HOME_DATASET_DIR=$2/$4
+HOME_DATASET_DIR1=$2/$4
+HOME_DATASET_DIR2=$2/$5
 HOME_RESULTADOS_DIR=$3
 DATASET_NAME1=$4
 DATASET_NAME2=$5
@@ -44,7 +45,8 @@ check_command_result rm -rf $NODE_DATASET_DIR $NODE_RESULTADOS_DIR
 check_command_result mkdir -p $NODE_DATASET_DIR $NODE_RESULTADOS_DIR
 
 # Copiar dataset al disco local del nodo
-check_command_result cp -r $HOME_DATASET_DIR $NODE_DATASET_DIR
+check_command_result cp -r $HOME_DATASET_DIR1 $NODE_DATASET_DIR
+check_command_result cp -r $HOME_DATASET_DIR2 $NODE_DATASET_DIR
 
 # Entrenar el modelo
 cd $ROOT_DIR
