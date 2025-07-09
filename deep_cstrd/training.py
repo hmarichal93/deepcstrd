@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
-                encoder, debug, dropout):
+                encoder, debug, dropout, freeze_encoder=False):
     # if Path(logs_dir).exists():
     #     os.system(f"rm -r {logs_dir}")
 
@@ -38,6 +38,7 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"encoder: {encoder}\n")
         f.write(f"debug: {debug}\n")
         f.write(f"dropout: {dropout}\n")
+        f.write(f"freeze_encoder: {freeze_encoder}\n")
 
     #load config file txt with numpy
     config = np.loadtxt(config_path, delimiter=":", dtype=str)
@@ -156,10 +157,11 @@ def eval_one_epoch(model, device, dataloader_val, criterion):
 
     return running_loss / len(dataloader_val)
 
-def load_model(model_type, weights_path, encoder="resnet34", channels=3, dropout=True):
+def load_model(model_type, weights_path, encoder="resnet34", channels=3, dropout=True, freeze_encoder=False):
     # Define the model
 
-    model = RingSegmentationModel.load_architecture(model_type, encoder, channels=channels, dropout=dropout)
+    model = RingSegmentationModel.load_architecture(model_type, encoder, channels=channels, dropout=dropout,
+                                                    freeze_encoder=freeze_encoder)
 
     # Ensure the model is moved to the GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -179,7 +181,7 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
                     loss = Loss.dice, augmentation = False, model_type=segmentation_model.UNET,
                     encoder="resnet34", channels=3, thickness=3, debug=False, dropout = False,
                     min_running_loss = float("inf"), weights_path=None,
-                    logs_dir="runs/unet_experiment"):
+                    logs_dir="runs/unet_experiment", freeze_encoder=False):
     import time
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     logs_dir = Path(logs_dir) / timestamp
@@ -193,9 +195,11 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
         logs_name += "_dropout"
     if weights_path:
         logs_name += "_weights"
+    if freeze_encoder:
+        logs_name += "_freeze_encoder"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
-                encoder, debug, dropout)
+                encoder, debug, dropout, freeze_encoder)
     return logs_dir, min_running_loss, 0
 
 
@@ -218,12 +222,13 @@ def training(args):
     model_type = args.model_type
     debug = args.debug
     weights_path = args.weights_path
+    freeze_encoder = args.freeze_encoder
 
     # Initialize
     logs_dir, min_running_loss, best_epoch = initializations(dataset_root, tile_size, overlap, batch_size, lr,
                                                              number_of_epochs, loss, augmentation, model_type,
                                                              encoder, channels, thickness, debug, weights_path= weights_path,
-                                                             logs_dir=logs_dir)
+                                                             logs_dir=logs_dir, freeze_encoder=freeze_encoder)
 
     dataloader_train, dataloader_val = load_datasets(dataset_root, tile_size, overlap, batch_size, augmentation,
                                                      thickness=thickness, test_size=args.test_size)
@@ -231,7 +236,7 @@ def training(args):
     #criterion = DiceLoss() if loss == Loss.dice else nn.BCEWithLogitsLoss()
     criterion = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True) if loss == Loss.dice else nn.BCEWithLogitsLoss()
     model, device = load_model(model_type, f"{logs_dir}/best_model.pth" if weights_path is None else weights_path,
-                               encoder, channels)
+                               encoder, channels, freeze_encoder= freeze_encoder)
     #from torchinfo import summary
     #print(summary(model, input_size=(batch_size, channels, tile_size, tile_size)))
 

@@ -134,7 +134,7 @@ def combine_metrics(metrics: tp.List[dict]) -> dict:
     for name in ['TP', 'FP', 'FN']:
         result[name] = np.sum([m[name] for m in metrics])
 
-    for newname, name in {'AR': 'recall'}.items():
+    for newname, name in {'AR': 'recall','AP': 'precision'}.items():
         result[newname] = np.nanmean([m[name] for m in metrics])
     return result
 
@@ -148,6 +148,7 @@ def combine_metrics_at_iou_levels(metrics: tp.List[dict], iou_levels=np.arange(0
 
     return {
         'mAR': np.nanmean([m['AR'] for m in all_combined]),
+        'mAP': np.nanmean([m['AP'] for m in all_combined]),
         'ARAND': np.nanmean([m['ARAND'] for m in metrics]),
     }
 

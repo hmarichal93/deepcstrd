@@ -52,7 +52,7 @@ def inference(args):
     res = DeepTreeRingDetection(im_in, args.cy, args.cx, args.hsize, args.wsize,
                             args.edge_th, args.nr, args.min_chain_length, args.weights_path, args.total_rotations,
                             args.debug, args.input, args.output_dir, args.tile_size, args.prediction_map_threshold,
-                            args.batch_size, encoder=args.encoder)
+                            args.batch_size, encoder=args.encoder, model_type=args.model_type)
     tf = time.time() - to
     print(f"Execution time: {tf}")
     saving_results(res, args.output_dir, args.save_imgs)
@@ -84,6 +84,7 @@ if __name__ == "__main__":
     parser_inference.add_argument('--tile_size', type=int, required=False, default=0)
     parser_inference.add_argument('--batch_size', type=int, required=False, default=1)
     parser_inference.add_argument('--encoder', type=str, default="resnet34", help='Encoder to use')
+    parser_inference.add_argument("--model_type", type=int, default=segmentation_model.UNET, help="Type of model to use")
     parser_inference.add_argument("--debug", type=int, required=False)
     parser_inference.set_defaults(func=inference)
 
@@ -99,6 +100,7 @@ if __name__ == "__main__":
     parser_train.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser_train.add_argument('--loss', type=int, default=0, help='Loss function. 0 dice loss, 1 BCE loss')
     parser_train.add_argument('--encoder', type=str, default="resnet34", help='Encoder to use')
+    parser_train.add_argument('--freeze_encoder', type=bool, default=False, help='Freeze encoder weights')
     parser_train.add_argument('--boundary_thickness', type=int, default=3, help='Mask boundary thickness')
     # parser.add_argument('--encoder', type=str, default="mobilenet_v2", help='Encoder to use')
     parser_train.add_argument('--input_channels', type=int, default=3, help='Number of input channels')

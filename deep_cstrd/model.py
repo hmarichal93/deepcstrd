@@ -34,6 +34,7 @@ class RingSegmentationModel:
     def load_architecture(model_type, encoder='resnet18', channels=3, dropout=False, freeze_encoder=True):
         # Load your model here
         if model_type == segmentation_model.UNET:
+            print(f"Loading UNet model with encoder {encoder}")
             model = smp.Unet(
                 encoder_name=encoder,
                 encoder_weights="imagenet",
@@ -45,6 +46,7 @@ class RingSegmentationModel:
             )
             if freeze_encoder:
                 #freeze the encoder
+                print(f"Freezing encoder {encoder} weights")
                 for param in model.encoder.parameters():
                     param.requires_grad = False
 
@@ -56,6 +58,11 @@ class RingSegmentationModel:
                 classes=1,
                 #aux_params=dict(dropout=0.3, classes=1) if dropout else None
             )
+            if freeze_encoder:
+                #freeze the encoder
+                print(f"Freezing encoder {encoder} weights")
+                for param in model.encoder.parameters():
+                    param.requires_grad = False
         elif model_type == segmentation_model.MASK_RCNN:
             model = torchvision.models.detection.mask_rcnn.MaskRCNN(backbone="resnet50", num_classes=1, pretrained=True)
 
@@ -66,7 +73,6 @@ class RingSegmentationModel:
 
         else:
             raise ValueError("Invalid model type")
-
         return model
 
     def load_model(self, weights_path, encoder='resnet18'):

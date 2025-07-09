@@ -60,8 +60,8 @@ def save_labelmap_image(labelmap, outf):
 def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v1/test",
                     results_path="/data/maestria/resultados/deep_cstrd_pinus_v1_test/inbd/inference/inbd_results/models_/inbd_urudendro_labels"):
     metadata_filename = Path(root_database).parent / 'dataset_ipol.csv'
-    images_dir = Path(root_database).parent / "images/segmented"
-    gt_dir = Path(root_database).parent / "annotations/labelme/images"
+    images_dir = Path(root_database) / "images/segmented"
+    gt_dir = Path(root_database) / "annotations/labelme/images"
     results_path = Path(results_path)
     results_path.mkdir(exist_ok=True)
 
@@ -78,6 +78,9 @@ def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v
         dt = results_path / f"{sample}/labelme.json"
         if not dt.exists():
             dt = results_path / f"{sample}/{sample}.json"
+            if not dt.exists():
+                #inbd detections
+                dt = results_path / f"{sample}.png.labelmap.json"
         print(dt)
         if not dt.exists():
             continue
@@ -88,10 +91,10 @@ def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v
 
         output_sample_dir = results_path / sample
         output_sample_dir.mkdir(parents=True, exist_ok=True)
-        if not gt.exists():
+        if not gt.exists() or True:
             P, R, F, RMSE, TP, FP, TN, FN = 0, 0, 0, 0, 0, 0, 0, 0
         else:
-            P, R, F, RMSE, TP, FP, TN, FN = metric(str(dt), str(gt), str(img_path), str(output_sample_dir),0.6,  cy, cx)
+            P, R, F, RMSE, TP, FP, TN, FN = metric(str(dt), str(gt), str(img_path), str(output_sample_dir),0.9,  cy, cx)
 
         try:
             dt_json = load_json(str(dt))
@@ -118,7 +121,7 @@ def compute_metrics(root_database ="/data/maestria/resultados/deep_cstrd/pinus_v
 
         ##save results
         df = pd.concat([df, pd.DataFrame([{"Sample": sample, "Precision": P, "Recall": R, "F1": F,
-                                           "RMSE": RMSE, "TP": TP, "FP": FP, "TN": TN, "FN": FN,"ARAND":inbd_metrics['ARAND'], 'mAR': inbd_metrics['mAR'] ,"exec_time": exec_time}])],
+                                           "RMSE": RMSE, "TP": TP, "FP": FP, "TN": TN, "FN": FN, "ARAND": inbd_metrics['ARAND'], 'mAR': inbd_metrics['mAR'] ,'mAP': inbd_metrics['mAP'] ,"exec_time": exec_time}])],
                        ignore_index=True)
     df.to_csv(f"{results_path}/results.csv", index=False)
 
@@ -159,12 +162,13 @@ def compute_statics(results_path):
 
     df = pd.read_csv(results_path)
     #df_stats = pd.DataFrame(columns=["Model",  "Precision", "Recall", "F1", "RMSE", "TP", "FP",  "FN"])
-    stats =df[["Precision", "Recall","F1", "RMSE", "TP", "FP", "FN", "ARAND", 'mAR', "exec_time"]].mean()
+    stats =df[["Precision", "Recall","F1", "RMSE", "TP", "FP", "FN", "ARAND", 'mAR', 'mAP' ,"exec_time"]].mean()
     df_stats = pd.DataFrame({"P": [stats["Precision"]], "R": [stats["Recall"]],"F1": [stats["F1"]], "RMSE": [stats["RMSE"]], "TP": [stats["TP"]], "FP": [stats["FP"]],
-                           "FN": [stats["FN"]], "ARAND": [stats['ARAND']], 'mAR': stats['mAR'],"exec_time": [stats["exec_time"]]})
+                           "FN": [stats["FN"]], "ARAND": [stats['ARAND']], 'mAR': stats['mAR'],'mAP': stats['mAP'],"exec_time": [stats["exec_time"]]})
     #df_stats = pd.concat([df_stats, df_aux ])
 
     df_stats.to_csv(Path(results_path).parent / "results_stats.csv", index=False)
+    print(df_stats)
     return
 
 def evaluate(args):
