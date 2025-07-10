@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
-                encoder, debug, dropout, freeze_encoder=False):
+                encoder, debug, dropout, freeze_encoder=False, weights_path=None):
     # if Path(logs_dir).exists():
     #     os.system(f"rm -r {logs_dir}")
 
@@ -39,6 +39,8 @@ def save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, numb
         f.write(f"debug: {debug}\n")
         f.write(f"dropout: {dropout}\n")
         f.write(f"freeze_encoder: {freeze_encoder}\n")
+        if weights_path:
+            f.write(f"weights_path: {weights_path}\n")
 
     #load config file txt with numpy
     config = np.loadtxt(config_path, delimiter=":", dtype=str)
@@ -199,7 +201,7 @@ def initializations(dataset_root= Path("/data/maestria/resultados/deep_cstrd/pin
         logs_name += "_freeze_encoder"
     logs_dir = str(logs_dir / logs_name)
     save_config(logs_dir, dataset_root, tile_size, overlap, batch_size, lr, number_of_epochs, loss, augmentation, model_type,
-                encoder, debug, dropout, freeze_encoder)
+                encoder, debug, dropout, freeze_encoder, weights_path)
     return logs_dir, min_running_loss, 0
 
 
