@@ -1,6 +1,7 @@
 # DeepCS-TRD, Deep Learning-based Cross-Section Tree Ring Detector
 
 **Published at International Conference on Image Analysis and Processing (ICIAP) 2025** 
+
 [Article](https://doi.org/10.1007/978-3-032-10185-3_3)|[Arxiv](https://doi.org/10.48550/arXiv.2504.16242)
 
 DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images. It substitutes the edge detection step of CS-TRD 
