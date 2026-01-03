@@ -1,6 +1,7 @@
 # DeepCS-TRD, Deep Learning-based Cross-Section Tree Ring Detector
 
-**Published at International Conference on Image Analysis and Processing (ICIAP) 2025** [Article](https://doi.org/10.1007/978-3-032-10185-3_3)|[Arxiv](https://doi.org/10.48550/arXiv.2504.16242)
+**Published at International Conference on Image Analysis and Processing (ICIAP) 2025** 
+[Article](https://doi.org/10.1007/978-3-032-10185-3_3)|[Arxiv](https://doi.org/10.48550/arXiv.2504.16242)
 
 DeepCS-TRD, a Deep Learning-based Cross-Section Tree Ring Detector in Macro images. It substitutes the edge detection step of CS-TRD 
 by a deep-learning-based approach (U-Net), which allows the application of the method to different image domains: microscopy, scanner or smartphone acquired, and species (Pinus taeda, Gleditsia triachantos and Salix glauca). In addition, two publicly available annotated datasets are introduced to the community. 
@@ -113,7 +114,32 @@ python main.py evaluate --dataset_dir DATASET_PATH --results_path RESULT_PATH
 Where DATASET_PATH is the path to the dataset folder containing the images and the annotations, 
 and RESULT_PATH is the path to the directory where the results are going to be saved.
 
+## Cite
+If you use DeepCS-TRD in your research, please use the following BibTeX entry.
 
+```bash
+@InProceedings{10.1007/978-3-032-10185-3_3,
+author="Marichal, Henry
+and Casaravilla, Ver{\'o}nica
+and Power, Candice
+and Mello, Karolain
+and Mazarino, Joaqu{\'i}n
+and Lucas, Christine
+and Profumo, Ludmila
+and Passarella, Diego
+and Randall, Gregory",
+editor="Rodol{\`a}, Emanuele
+and Galasso, Fabio
+and Masi, Iacopo",
+title="DeepCS-TRD, a Deep Learning-Based Cross-Section Tree Ring Detector",
+booktitle="Image Analysis and Processing -- ICIAP 2025",
+year="2026",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="29--41",
+isbn="978-3-032-10185-3"
+}
+```
 
 ***
 
