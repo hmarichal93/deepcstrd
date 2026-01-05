@@ -118,7 +118,7 @@ and RESULT_PATH is the path to the directory where the results are going to be s
 ## Cite
 If you use DeepCS-TRD in your research, please use the following BibTeX entry.
 
-```bash
+```bibtex
 @InProceedings{10.1007/978-3-032-10185-3_3,
 author="Marichal, Henry
 and Casaravilla, Ver{\'o}nica
